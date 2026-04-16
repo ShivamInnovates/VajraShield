@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   FiBell, FiAlertCircle, FiClock, FiCheckCircle,
   FiArrowRight, FiZap, FiShield, FiBook, FiPhone, FiTarget,
@@ -7,19 +7,26 @@ import {
 import { HiSparkles } from 'react-icons/hi';
 import { MdAnalytics, MdSpeed } from 'react-icons/md';
 
-export default function Home({ darkMode }) {
-  const [recentTransactions] = useState([
-    { id: 'TXN001', sender: 'John Smith', receiver: 'Merchant Store', amount: 450000, risk_score: 0.78, status: 'pending', time: '2 min ago' },
-    { id: 'TXN002', sender: 'Corporate Finance', receiver: 'Vendor Corp', amount: 2500000, risk_score: 0.65, status: 'pending', time: '15 min ago' },
-    { id: 'TXN003', sender: 'Retail Shop', receiver: 'Supplier', amount: 125000, risk_score: 0.35, status: 'approved', time: '45 min ago' },
-    { id: 'TXN004', sender: 'Unknown Account', receiver: 'Offshore Account', amount: 5000000, risk_score: 0.92, status: 'escalated', time: '1 hour ago' },
-  ]);
+import useStore from '../store/useStore';
 
-  const metrics = {
-    totalTransactions: 1524, flaggedCount: 47, pendingReview: 12,
-    approvedToday: 156, rejectedToday: 8, avgProcessingTime: '4.2 min',
-    modelAccuracy: '94.2%', slaCompliance: '98.5%', activeModules: 7,
-  };
+export default function Home({ darkMode }) {
+  const liveEvents = useStore(state => state.liveEvents);
+  const metrics = useStore(state => state.metrics);
+  const liveStatus = useStore(state => state.isConnected ? 'Online' : 'Offline');
+  const isConnected = useStore(state => state.isConnected);
+
+  // Use only live events for the display format
+  const mappedLiveEvents = liveEvents.map(txn => ({
+    id: txn.txn_id || `TXN${Math.floor(Math.random()*1000)}`,
+    sender: txn.user_id || txn.sender || 'Unknown',
+    receiver: (txn.recipient_id && txn.recipient_id !== 'UNKNOWN') ? txn.recipient_id : (txn.merchant || txn.receiver || 'Merchant'),
+    amount: txn.amount || 0,
+    risk_score: txn.unified_score || 0,
+    status: (txn.decision || 'pending').toLowerCase(),
+    time: 'Live'
+  }));
+
+  const recentTransactions = mappedLiveEvents.slice(0, 10);
 
   const getRiskBadge = (score) => {
     if (score > 0.8) return { bg: darkMode ? 'bg-red-900 border-red-700' : 'bg-red-100 border-red-300', text: darkMode ? 'text-red-300' : 'text-red-700', dot: 'bg-red-500' };
@@ -33,6 +40,7 @@ export default function Home({ darkMode }) {
       pending: darkMode ? 'bg-amber-900 text-amber-300 border border-amber-700' : 'bg-amber-100 text-amber-700 border border-amber-300',
       approved: darkMode ? 'bg-green-900 text-green-300 border border-green-700' : 'bg-green-100 text-green-700 border border-green-300',
       escalated: darkMode ? 'bg-red-900 text-red-300 border border-red-700' : 'bg-red-100 text-red-700 border border-red-300',
+      block: darkMode ? 'bg-red-900 text-red-300 border border-red-700' : 'bg-red-100 text-red-700 border border-red-300',
     };
     return map[status] || map.pending;
   };
@@ -103,7 +111,7 @@ export default function Home({ darkMode }) {
           { label: 'Active Modules', value: metrics.activeModules, icon: HiSparkles, iconBg: darkMode ? 'bg-amber-900' : 'bg-amber-100', iconColor: darkMode ? 'text-amber-400' : 'text-amber-600' },
           { label: 'Model Accuracy', value: metrics.modelAccuracy, icon: MdAnalytics, iconBg: darkMode ? 'bg-zinc-900' : 'bg-gray-100', iconColor: darkMode ? 'text-gray-300' : 'text-gray-700' },
           { label: 'SLA Compliance', value: metrics.slaCompliance, icon: FiTarget, iconBg: darkMode ? 'bg-green-900' : 'bg-green-100', iconColor: darkMode ? 'text-green-400' : 'text-green-600' },
-          { label: 'System Status', value: 'Online', icon: FiRadio, iconBg: darkMode ? 'bg-green-900' : 'bg-green-100', iconColor: darkMode ? 'text-green-400 animate-pulse' : 'text-green-600 animate-pulse', valColor: darkMode ? 'text-green-400' : 'text-green-600' },
+          { label: 'System Status', value: liveStatus, icon: FiRadio, iconBg: darkMode ? 'bg-green-900' : 'bg-green-100', iconColor: darkMode ? 'text-green-400 animate-pulse' : 'text-green-600 animate-pulse', valColor: darkMode ? 'text-green-400' : 'text-green-600' },
         ].map((s, i) => (
           <div key={i} className={`p-4 rounded-xl border ${card} ${cardHover} transition-all`}>
             <div className="flex items-center space-x-3">
@@ -136,7 +144,7 @@ export default function Home({ darkMode }) {
           </a>
         </div>
 
-        <div className="p-4 space-y-2">
+        <div className="p-4 space-y-2 max-h-[300px] overflow-y-auto custom-scrollbar">
           {recentTransactions.map((txn) => {
             const risk = getRiskBadge(txn.risk_score);
             return (
@@ -185,6 +193,7 @@ export default function Home({ darkMode }) {
           <div className="p-3 space-y-1">
             {[
               { label: 'Total Processed', value: metrics.totalTransactions, color: title },
+              { label: 'Reviewed Today', value: metrics.reviewedToday, color: darkMode ? 'text-blue-400' : 'text-blue-600', icon: FiCheckCircle },
               { label: 'Flagged', value: metrics.flaggedCount, color: darkMode ? 'text-red-400' : 'text-red-600', icon: FiAlertCircle },
               { label: 'Rejected Today', value: metrics.rejectedToday, color: darkMode ? 'text-orange-400' : 'text-orange-600' },
             ].map((row, i) => (
@@ -221,6 +230,61 @@ export default function Home({ darkMode }) {
               <p className={`text-xs mt-0.5 ${darkMode ? 'text-orange-400' : 'text-orange-700'}`}>Detailed metrics and trends</p>
             </a>
           </div>
+        </div>
+      </div>
+
+      {/* Live Events Monitor */}
+      <div className={`p-5 rounded-xl border ${card}`}>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-2">
+            <FiRadio className={`w-5 h-5 ${darkMode ? 'text-indigo-400' : 'text-indigo-600'} animate-pulse`} />
+            <h3 className={`font-bold ${title}`}>Live Security Feed</h3>
+          </div>
+          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+            isConnected ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'
+          }`}>
+            {isConnected ? 'STREAMING' : 'DISCONNECTED'}
+          </span>
+        </div>
+        
+        <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+          {liveEvents.length === 0 ? (
+            <div className="py-10 text-center">
+              <FiActivity className="w-10 h-10 text-gray-600 mx-auto mb-2 opacity-20" />
+              <p className={`text-sm ${label}`}>Waiting for incoming transactions...</p>
+            </div>
+          ) : (
+            liveEvents.map((event, i) => (
+              <div key={i} className={`p-4 rounded-xl border transition-all ${
+                darkMode ? 'bg-zinc-900/50 border-zinc-800' : 'bg-gray-50 border-gray-100'
+              }`}>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center space-x-2">
+                    <span className={`w-2 h-2 rounded-full ${event.decision === 'APPROVE' ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                    <span className={`text-xs font-mono ${label}`}>{event.txn_id}</span>
+                  </div>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                    event.decision === 'APPROVE' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'
+                  }`}>
+                    {event.decision}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className={`text-sm font-bold ${title}`}>Risk: {(event.unified_score * 100).toFixed(1)}%</span>
+                  <span className={`text-xs ${sub}`}>{event.latency_budget.split(' ')[0]} ms</span>
+                </div>
+                {event.signals && event.signals.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {event.signals.map((sig, j) => (
+                      <span key={j} className="text-[10px] bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded-full border border-indigo-500/20">
+                        {sig.replace(/_/g, ' ')}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))
+          )}
         </div>
       </div>
 

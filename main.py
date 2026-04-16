@@ -1,44 +1,42 @@
-from fastapi import FastAPI, HTTPException
+import asyncio
+from fastapi import FastAPI, HTTPException, BackgroundTasks
 from pydantic import BaseModel
 from typing import Optional
 from contextlib import asynccontextmanager
 import redis
+import time
 
 # VajraShield Engines
-from services.filter_engine import process_lane_1
-from services.graph_engine import FraudGraph
+from ml_engine.decision_engine import async_make_decision
+from ml_engine.redis_filter import record_transaction, load_demo_data
+from ml_engine.ml_scorer import warm_up, update_model
+from services.kafka_publisher import publish_event
 
 # Global Instances
-graph_engine = None
 redis_client = None
 
 # Custom Lifespan for Startup/Shutdown procedures in modern FastAPI
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global graph_engine
     global redis_client
     
-    # 1. Initialize Neo4j Graph Connection
-    print("VajraShield Initialization: Starting Neo4j Connect...")
-    try:
-        graph_engine = FraudGraph()
-    except Exception as e:
-        print(f"[CRITICAL ERROR] Failed to connect to Neo4j instance: {e}")
-        
-    # 2. Check Redis Connectivity locally for health verification mappings
+    # Pre-warm ML models
+    warm_up()
+
+    # Check Redis Connectivity for health verification
     print("VajraShield Initialization: Starting Redis Connect...")
     try:
-        redis_client = redis.Redis(host='localhost', port=6380, db=0, decode_responses=True)
+        # Use host='redis' for Docker network communication
+        redis_client = redis.Redis(host='redis', port=6379, db=0, decode_responses=True)
         redis_client.ping() # Health check
+        
+        # Load demo blacklists and baselines
+        load_demo_data()
     except Exception as e:
         print(f"[CRITICAL ERROR] Failed to initialize Redis instance: {e}")
         
     yield # App continues mapping here while running
     
-    # Shutdown sequence
-    if graph_engine is not None:
-        graph_engine.close()
-
 app = FastAPI(title="VajraShield API", lifespan=lifespan)
 
 # Pydantic schema enforcing structure of an incoming payload
@@ -54,69 +52,62 @@ class TransactionPayload(BaseModel):
     account_age_days: int
     ip_address: str
     merchant: Optional[str] = None
+    recipient_id: Optional[str] = "UNKNOWN"
 
 @app.post("/predict")
-async def predict(transaction: TransactionPayload):
-    # Convert validated schema directly to dictionary for underlying module processing
+async def predict(transaction: TransactionPayload, background_tasks: BackgroundTasks):
+    # Convert validated schema directly to dictionary
     payload = transaction.dict()
-
-    # ==========================================
-    # LANE 1: REDIS FILTER ENGINE (<5ms tier)
-    # ==========================================
-    try:
-        lane_1_analysis = process_lane_1(payload)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Lane 1 Redis processing crashed: {str(e)}")
-
-    # Clear transaction instantly if authorized by Lane 1
-    if lane_1_analysis.get("status") == "LANE_1_APPROVED":
-        return {
-            "status": "APPROVED",
-            "reason": lane_1_analysis.get("reason"),
-            "clearance_tier": "Lane 1 (Redis Base)",
-            "decision_time": lane_1_analysis.get("decision_time", "<5ms"),
-            "risk_score": 0.01
-        }
-    
-    # ==========================================
-    # LANE 2: NEO4J GRAPH ENGINE (Ring Detection)
-    # ==========================================
-    # Execute if Lane 1 returned 'SEND_TO_LANE_2' map block
-    if not graph_engine:
-         raise HTTPException(status_code=503, detail="Lane 2 service offline. Neo4j connection not instantiated.")
+    start_time = time.time()
 
     try:
-        lane_2_analysis = graph_engine.check_for_fraud_ring(
+        # Full 3-Lane Decision Engine (Async)
+        # Implements Parallel Analysis (Lane 2) and Cold Start (Lane 3.5)
+        decision_result = await async_make_decision(
+            features=payload,
+            account_id=transaction.user_id,
             device_id=transaction.device_id,
-            ip_address=transaction.ip_address
+            ip=transaction.ip_address,
+            recipient_id=transaction.recipient_id
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Lane 2 Neo4j processing crashed: {str(e)}")
+        print(f"Decision Engine Error: {e}")
+        raise HTTPException(status_code=500, detail=f"VajraShield Decision Engine crashed: {str(e)}")
 
-    if lane_2_analysis.get("status") == "RING_DETECTED":
-        return {
-            "status": "REJECTED_COORDINATED_FRAUD",
-            "reason": lane_2_analysis.get("reason"),
-            "escalated_from_lane_1_reason": lane_1_analysis.get("reason"),
-            "clearance_tier": "Lane 2 (Neo4j Graph)",
-            "graph_risk_score": lane_2_analysis.get("graph_risk_score")
-        }
+    # Calculate final latency
+    total_latency_ms = (time.time() - start_time) * 1000
+    decision_result["actual_latency_ms"] = round(total_latency_ms, 2)
 
-    # ==========================================
-    # LANE 3: RIVER ONLINE ML MODEL (Stubbed)
-    # ==========================================
-    # TODO: This will eventually call the River adaptive learning engine instance.
-    # Example logic placeholder:
-    # 
-    # ml_score = river_model.predict(payload)
-    # if ml_score > 0.8:
-    #     return { "status": "REJECTED_ML_MODEL", "risk_score": ml_score, "reason": "Adaptive learning flagged anomaly" }
-    
-    # Assumes fallback to Approved if Lane 1 escalated securely but Lane 2 found no ring links mapping
+    # ── Online Learning Feedback Loop ──────────────────────────────────────
+    # Every decision (even auto-approvals) trains the River model
+    is_fraud_label = 1 if decision_result["decision"] == "BLOCK" else 0
+    background_tasks.add_task(update_model, payload, is_fraud_label)
+
+    # ── Kafka Event Pipeline (Enterprise Bus) ───────────────────────────────
+    # 1. Always publish to dashboard-ws for live visualization
+    background_tasks.add_task(
+        publish_event, 
+        "dashboard-ws", 
+        {**payload, **decision_result, "txn_id": f"TXN_{int(time.time()*1000)}"}
+    )
+
+    # 2. Publish to audit-log
+    background_tasks.add_task(
+        publish_event, 
+        "audit-log", 
+        {"txn_id": f"TXN_{int(time.time()*1000)}", "event_type": "PREDICTION", "decision": decision_result["decision"]}
+    )
+
+    # 3. Handle Lane 3: Auto-Flag to Human Review Queue
+    if decision_result["lane"] == 3:
+        background_tasks.add_task(
+            publish_event, 
+            "model-updates", # Shared with review queue or specific review topic
+            {"txn_id": f"TXN_{int(time.time()*1000)}", "needs_review": True, "evidence": decision_result["signals"]}
+        )
+
     return {
-        "status": "APPROVED",
-        "reason": "Transaction routine cleared post graph screening",
-        "escalated_from_lane_1_reason": lane_1_analysis.get("reason"),
-        "clearance_tier": "Lane 3 Fallback",
-        "graph_risk_score": lane_2_analysis.get("graph_risk_score", 0.1)
+        **decision_result,
+        "service_status": "ONLINE",
+        "threat_protection": "ACTIVE"
     }

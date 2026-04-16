@@ -1,27 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import TransactionCard from '../components/TransactionCard';
 import { FiClock, FiCheckCircle, FiTrendingUp, FiSearch } from 'react-icons/fi';
+import useStore from '../store/useStore';
 
 export default function ReviewQueue({ darkMode }) {
-  const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const allQueueTransactions = useStore(state => state.reviewQueue);
+  const metrics = useStore(state => state.metrics);
   const [filter, setFilter] = useState('pending');
 
-  useEffect(() => {
-    loadTransactions();
-  }, [filter]);
-
-  const loadTransactions = async () => {
-    setLoading(true);
-    const mockData = [
-      { id: 'TXN001', sender: 'ACC_0001_JOHN_SMITH', receiver: 'ACC_0002_MERCHANT_STORE', amount: 450000, risk_score: 0.78, status: 'pending', createdAt: '2026-04-16 14:23:00' },
-      { id: 'TXN002', sender: 'ACC_0003_CORP_FINANCE', receiver: 'ACC_0004_VENDOR_CORP', amount: 2500000, risk_score: 0.65, status: 'pending', createdAt: '2026-04-16 15:45:00' },
-      { id: 'TXN005', sender: 'ACC_0007_RETAIL_SHOP', receiver: 'ACC_0008_SUPPLIER', amount: 125000, risk_score: 0.45, status: 'pending', createdAt: '2026-04-16 16:10:00' },
-      { id: 'TXN006', sender: 'ACC_0009_UNKNOWN', receiver: 'ACC_0010_OFFSHORE', amount: 5000000, risk_score: 0.92, status: 'pending', createdAt: '2026-04-16 16:30:00' },
-    ];
-    setTransactions(mockData);
-    setLoading(false);
-  };
+  // Filter the queue transactions based on the selected tab
+  const transactions = allQueueTransactions.filter(txn => {
+    if (filter === 'pending') return txn.status === 'pending';
+    if (filter === 'reviewed') return txn.status === 'approved' || txn.status === 'rejected';
+    if (filter === 'escalated') return txn.unified_score > 0.8;
+    return true;
+  });
 
   const filterButtons = [
     { label: 'Pending Review', value: 'pending', icon: FiClock },
@@ -82,9 +75,9 @@ export default function ReviewQueue({ darkMode }) {
       {/* Stats row */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: 'Pending', value: 4, color: darkMode ? 'text-amber-400' : 'text-amber-600', bg: darkMode ? 'bg-amber-900/30 border-amber-800' : 'bg-amber-50 border-amber-200' },
-          { label: 'Reviewed Today', value: 23, color: darkMode ? 'text-green-400' : 'text-green-600', bg: darkMode ? 'bg-green-900/30 border-green-800' : 'bg-green-50 border-green-200' },
-          { label: 'Escalated', value: 2, color: darkMode ? 'text-red-400' : 'text-red-600', bg: darkMode ? 'bg-red-900/30 border-red-800' : 'bg-red-50 border-red-200' },
+          { label: 'Pending', value: metrics.pendingReview || 0, color: darkMode ? 'text-amber-400' : 'text-amber-600', bg: darkMode ? 'bg-amber-900/30 border-amber-800' : 'bg-amber-50 border-amber-200' },
+          { label: 'Reviewed Today', value: (metrics.resolution.blocked || 0) + (metrics.resolution.approved || 0), color: darkMode ? 'text-green-400' : 'text-green-600', bg: darkMode ? 'bg-green-900/30 border-green-800' : 'bg-green-50 border-green-200' },
+          { label: 'Escalated', value: metrics.laneStats.lane3.count || 0, color: darkMode ? 'text-red-400' : 'text-red-600', bg: darkMode ? 'bg-red-900/30 border-red-800' : 'bg-red-50 border-red-200' },
         ].map((s, i) => (
           <div key={i} className={`p-4 rounded-xl border ${s.bg}`}>
             <p className={`text-xs font-semibold uppercase tracking-wider ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{s.label}</p>
@@ -94,12 +87,7 @@ export default function ReviewQueue({ darkMode }) {
       </div>
 
       {/* Transactions */}
-      {loading ? (
-        <div className={`text-center py-16 rounded-xl border ${card}`}>
-          <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-          <p className={`text-sm ${sub}`}>Loading transactions...</p>
-        </div>
-      ) : transactions.length === 0 ? (
+      {transactions.length === 0 ? (
         <div className={`text-center py-16 rounded-xl border ${card}`}>
           <FiCheckCircle className={`w-10 h-10 mx-auto mb-3 ${darkMode ? 'text-gray-600' : 'text-gray-400'}`} />
           <p className={`font-medium ${title}`}>No transactions found</p>
@@ -108,7 +96,7 @@ export default function ReviewQueue({ darkMode }) {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-3">
           {transactions.map((txn) => (
-            <TransactionCard key={txn.id} transaction={txn} onReload={loadTransactions} darkMode={darkMode} />
+            <TransactionCard key={txn.id} transaction={txn} darkMode={darkMode} />
           ))}
         </div>
       )}

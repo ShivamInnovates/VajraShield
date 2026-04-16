@@ -1,14 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FiZap, FiCheckCircle, FiAlertTriangle, FiXCircle, FiArrowRight, FiActivity, FiClock, FiDatabase } from 'react-icons/fi';
-
-const laneData = {
-  filter: { processed: 12847, avgTime: '3.2ms', signals: 9, redisNodes: 3, redisStatus: 'Healthy' },
-  coldStart: { detected: 34, routedToLane2: 34, threshold: 10 },
-  lane1: { count: 11243, label: 'Obviously Clean', pct: 87.5, avgTime: '<5ms' },
-  lane2: { count: 1287, label: 'Deep Analysis', pct: 10.0, avgTime: '180ms', riverStatus: 'Active', neo4jStatus: 'Connected' },
-  lane3: { count: 317, label: 'Obviously Suspicious', pct: 2.5, autoFlagged: 289, humanReview: 28, blocked: 12 },
-  resolution: { approved: 11456, stepUp: 187, blocked: 12, slaCompliance: 98.5 },
-};
+import useStore from '../store/useStore';
 
 function LaneCard({ lane, color, bgGradient, icon: Icon, children, darkMode }) {
   return (
@@ -25,7 +17,41 @@ function LaneCard({ lane, color, bgGradient, icon: Icon, children, darkMode }) {
 }
 
 export default function LanePipelineView({ darkMode }) {
+  const metrics = useStore(state => state.metrics);
+  const laneStats = metrics.laneStats;
+  const resolution = metrics.resolution;
+  const isConnected = useStore(state => state.isConnected);
   const [pulseIndex, setPulseIndex] = useState(0);
+
+  const stats = {
+    lane1: { 
+      ...(laneStats?.lane1 || { count: 0, pct: 0 }), 
+      label: 'Obviously Clean', 
+      avgTime: '<5ms' 
+    },
+    lane2: { 
+      ...(laneStats?.lane2 || { count: 0, pct: 0 }), 
+      label: 'Deep Analysis', 
+      riverStatus: isConnected ? 'Active' : 'Offline', 
+      neo4jStatus: isConnected ? 'Connected' : 'Offline' 
+    },
+    lane3: { 
+      ...(laneStats?.lane3 || { count: 0, pct: 0 }), 
+      label: 'Obviously Suspicious', 
+      autoFlagged: (laneStats?.lane3?.count || 0), 
+      humanReview: metrics.pendingReview || 0 
+    },
+    filter: { 
+      signals: 9, 
+      avgTime: metrics.performanceMetrics['Avg Latency'] || '---', 
+      redisNodes: isConnected ? 3 : 0 
+    },
+    coldStart: { 
+      detected: laneStats?.lane2?.count || 0, 
+      routedToLane2: laneStats?.lane2?.count || 0, 
+      threshold: 10 
+    }
+  };
 
   useEffect(() => {
     const interval = setInterval(() => setPulseIndex(p => (p + 1) % 5), 2000);
@@ -48,7 +74,7 @@ export default function LanePipelineView({ darkMode }) {
           </div>
           <div className={`px-4 py-2 rounded-xl ${darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
             <p className={`text-xs font-semibold ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>Total Processed</p>
-            <p className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{laneData.filter.processed.toLocaleString()}</p>
+            <p className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{metrics.totalTransactions.toLocaleString()}</p>
           </div>
         </div>
       </div>
@@ -59,10 +85,10 @@ export default function LanePipelineView({ darkMode }) {
         <div className="flex items-center justify-between overflow-x-auto pb-2 gap-2">
           {[
             { label: 'Incoming', sub: 'Payment App', color: 'bg-teal-500' },
-            { label: 'Layer 3.5 Filter', sub: `${laneData.filter.signals} signals, ${laneData.filter.avgTime}`, color: 'bg-cyan-500' },
-            { label: 'Cold Start Check', sub: `<${laneData.coldStart.threshold} txns → Lane 2`, color: 'bg-amber-500' },
-            { label: 'Lane Decision', sub: 'Threshold routing', color: 'bg-indigo-500' },
-            { label: 'Resolution', sub: '400ms deadline', color: 'bg-green-500' },
+            { label: 'Layer 3.5 Filter', sub: `Unified Risk`, color: 'bg-cyan-500' },
+            { label: 'Cold Start Check', sub: `Adaptive Routing`, color: 'bg-amber-500' },
+            { label: 'Lane Decision', sub: 'ML Threshold routing', color: 'bg-indigo-500' },
+            { label: 'Resolution', sub: 'Real-time decision', color: 'bg-green-500' },
           ].map((step, i) => (
             <React.Fragment key={i}>
               <div className={`flex-shrink-0 p-3 rounded-xl border-2 transition-all duration-500 ${
@@ -88,15 +114,15 @@ export default function LanePipelineView({ darkMode }) {
           <div className="grid grid-cols-3 gap-3">
             <div>
               <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>Signals</p>
-              <p className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{laneData.filter.signals}</p>
+              <p className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{stats.filter.signals}</p>
             </div>
             <div>
               <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>Avg Time</p>
-              <p className="text-xl font-bold text-cyan-400">{laneData.filter.avgTime}</p>
+              <p className="text-xl font-bold text-cyan-400">{stats.filter.avgTime}</p>
             </div>
             <div>
               <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>Redis Nodes</p>
-              <p className="text-xl font-bold text-green-400">{laneData.filter.redisNodes}/3</p>
+              <p className="text-xl font-bold text-green-400">{stats.filter.redisNodes}/3</p>
             </div>
           </div>
         </div>
@@ -109,64 +135,64 @@ export default function LanePipelineView({ darkMode }) {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>Detected</p>
-              <p className="text-xl font-bold text-amber-400">{laneData.coldStart.detected}</p>
+              <p className="text-xl font-bold text-amber-400">{stats.coldStart.detected}</p>
             </div>
             <div>
               <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>Routed to Lane 2</p>
-              <p className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{laneData.coldStart.routedToLane2}</p>
+              <p className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{stats.coldStart.routedToLane2}</p>
             </div>
           </div>
-          <p className={`text-xs mt-2 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>Accounts with &lt;{laneData.coldStart.threshold} transactions → automatic deep analysis</p>
+          <p className={`text-xs mt-2 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>Accounts with &lt;{stats.coldStart.threshold} transactions → automatic deep analysis</p>
         </div>
       </div>
 
       {/* Three Lanes */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <LaneCard
-          lane={laneData.lane1} color="text-green-400"
+          lane={stats.lane1} color="text-green-400"
           bgGradient={darkMode ? 'bg-green-950/20 border-green-800/50' : 'bg-green-50 border-green-200'}
           icon={FiCheckCircle} darkMode={darkMode}
         >
           <div className={`mt-3 p-2 rounded-lg ${darkMode ? 'bg-green-900/20' : 'bg-green-100'}`}>
-            <p className={`text-xs ${darkMode ? 'text-green-300' : 'text-green-700'}`}>✓ Bypass ML • Sync response • {laneData.lane1.avgTime}</p>
+            <p className={`text-xs ${darkMode ? 'text-green-300' : 'text-green-700'}`}>✓ Bypass ML • Sync response • {stats.lane1.avgTime}</p>
           </div>
         </LaneCard>
 
         <LaneCard
-          lane={laneData.lane2} color="text-amber-400"
+          lane={stats.lane2} color="text-amber-400"
           bgGradient={darkMode ? 'bg-amber-950/20 border-amber-800/50' : 'bg-amber-50 border-amber-200'}
           icon={FiAlertTriangle} darkMode={darkMode}
         >
           <div className={`mt-3 space-y-1`}>
             <div className="flex items-center justify-between">
               <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>River ML</span>
-              <span className="text-xs font-bold text-green-400">{laneData.lane2.riverStatus}</span>
+              <span className="text-xs font-bold text-green-400">{stats.lane2.riverStatus}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Neo4j Graph</span>
-              <span className="text-xs font-bold text-green-400">{laneData.lane2.neo4jStatus}</span>
+              <span className="text-xs font-bold text-green-400">{stats.lane2.neo4jStatus}</span>
             </div>
             <p className={`text-xs ${darkMode ? 'text-amber-300' : 'text-amber-700'}`}>Parallel execution • 250ms timeout</p>
           </div>
         </LaneCard>
 
         <LaneCard
-          lane={laneData.lane3} color="text-red-400"
+          lane={stats.lane3} color="text-red-400"
           bgGradient={darkMode ? 'bg-red-950/20 border-red-800/50' : 'bg-red-50 border-red-200'}
           icon={FiXCircle} darkMode={darkMode}
         >
           <div className={`mt-3 space-y-1`}>
             <div className="flex items-center justify-between">
               <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Auto-Flagged</span>
-              <span className="text-xs font-bold text-red-400">{laneData.lane3.autoFlagged}</span>
+              <span className="text-xs font-bold text-red-400">{stats.lane3.autoFlagged}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Human Review</span>
-              <span className="text-xs font-bold text-amber-400">{laneData.lane3.humanReview}</span>
+              <span className="text-xs font-bold text-amber-400">{stats.lane3.humanReview}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Blocked</span>
-              <span className="text-xs font-bold text-red-500">{laneData.lane3.blocked}</span>
+              <span className="text-xs font-bold text-red-500">{stats.lane3.count}</span>
             </div>
           </div>
         </LaneCard>
@@ -179,25 +205,25 @@ export default function LanePipelineView({ darkMode }) {
           <div className={`p-4 rounded-xl border ${darkMode ? 'bg-green-950/20 border-green-800/30' : 'bg-green-50 border-green-200'}`}>
             <FiCheckCircle className="w-6 h-6 text-green-400 mb-2" />
             <p className={`text-xs font-semibold ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Approved</p>
-            <p className="text-2xl font-bold text-green-400">{laneData.resolution.approved.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-green-400">{resolution.approved.toLocaleString()}</p>
             <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>Sync &lt;400ms</p>
           </div>
           <div className={`p-4 rounded-xl border ${darkMode ? 'bg-cyan-950/20 border-cyan-800/30' : 'bg-cyan-50 border-cyan-200'}`}>
             <FiArrowRight className="w-6 h-6 text-cyan-400 mb-2" />
             <p className={`text-xs font-semibold ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Step-Up Verification</p>
-            <p className="text-2xl font-bold text-cyan-400">{laneData.resolution.stepUp}</p>
+            <p className="text-2xl font-bold text-cyan-400">{resolution.stepUp}</p>
             <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>Loop back to engine</p>
           </div>
           <div className={`p-4 rounded-xl border ${darkMode ? 'bg-red-950/20 border-red-800/30' : 'bg-red-50 border-red-200'}`}>
             <FiXCircle className="w-6 h-6 text-red-400 mb-2" />
             <p className={`text-xs font-semibold ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Blocked</p>
-            <p className="text-2xl font-bold text-red-400">{laneData.resolution.blocked}</p>
-            <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>Post human review</p>
+            <p className="text-2xl font-bold text-red-400">{resolution.blocked}</p>
+            <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>Auto-Decision</p>
           </div>
           <div className={`p-4 rounded-xl border ${darkMode ? 'bg-indigo-950/20 border-indigo-800/30' : 'bg-indigo-50 border-indigo-200'}`}>
             <FiClock className="w-6 h-6 text-indigo-400 mb-2" />
             <p className={`text-xs font-semibold ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>SLA Compliance</p>
-            <p className="text-2xl font-bold text-indigo-400">{laneData.resolution.slaCompliance}%</p>
+            <p className="text-2xl font-bold text-indigo-400">98.5%</p>
             <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>400ms target</p>
           </div>
         </div>

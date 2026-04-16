@@ -24,6 +24,10 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         self.minute_limit = int(os.getenv("MINUTE_LIMIT", 100))
     
     async def dispatch(self, request: Request, call_next: Callable):
+        # WebSocket Fast-Pass: Bypass rate limiting for live data stream
+        if request.scope.get("type") == "websocket":
+            return await call_next(request)
+
         # Get client IP
         client_ip = request.client.host if request.client else "unknown"
         

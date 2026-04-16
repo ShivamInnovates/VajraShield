@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import AuthGuard from './components/AuthGuard';
 import Home from './pages/Home';
 import ReviewQueue from './pages/ReviewQueue';
 import TransactionDetail from './pages/TransactionDetail';
@@ -18,10 +19,17 @@ import SecurityAuditLog from './pages/SecurityAuditLog';
 import Sidebar from './components/Sidebar';
 import TopBar from './components/TopBar';
 import FloatingChat from './components/FloatingChat';
-import AuthGuard from './components/AuthGuard';
 import authService from './services/authService';
+import useStore from './store/useStore';
+import { useEffect } from 'react';
 
 export default function App() {
+  const connectWebSocket = useStore(state => state.connectWebSocket);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token') || 'dev-token';
+    connectWebSocket(token);
+  }, [connectWebSocket]);
   const [darkMode, setDarkMode] = useState(true);
   const [authVersion, setAuthVersion] = useState(0); // triggers re-render on login/logout
 

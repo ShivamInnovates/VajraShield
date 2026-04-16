@@ -10,9 +10,28 @@ services:
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
       - REDIS_HOST=redis
       - KAFKA_BROKERS=kafka:29092
+      - PREDICTION_SERVICE_URL=http://prediction-service:8000
     depends_on:
       - redis
       - kafka
+      - prediction-service
+    networks:
+      - vajrashield
+
+  # Prediction Service (Decision Engine)
+  prediction-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.prediction
+    environment:
+      - REDIS_HOST=redis
+      - KAFKA_BROKERS=kafka:29092
+      - NEO4J_URI=bolt://neo4j:7687
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+    depends_on:
+      - redis
+      - kafka
+      - neo4j
     networks:
       - vajrashield
 
@@ -71,12 +90,13 @@ services:
 
   # Neo4j
   neo4j:
-    image: neo4j:5-enterprise
+    image: neo4j:5-community
     ports:
       - "7687:7687"
       - "7474:7474"
     environment:
       - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD}
+      - NEO4J_ACCEPT_LICENSE_AGREEMENT=yes
     volumes:
       - neo4j_data:/var/lib/neo4j/data
     networks:
@@ -101,6 +121,9 @@ services:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
       KAFKA_INTER_BROKER_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
     depends_on:
       - zookeeper
     networks:

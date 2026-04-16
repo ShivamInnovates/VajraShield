@@ -1,54 +1,67 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { submitReview } from '../services/api';
 import { FiAlertTriangle, FiCheckCircle, FiXCircle, FiArrowUp, FiArrowLeft, FiArrowDown } from 'react-icons/fi';
+import useStore from '../store/useStore';
 
 export default function TransactionDetail({ darkMode }) {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const allEvents = useStore(state => [...state.liveEvents, ...state.reviewQueue]);
   const [transaction, setTransaction] = useState(null);
   const [loading, setLoading] = useState(true);
   const [reviewing, setReviewing] = useState(false);
   const [decision, setDecision] = useState(null);
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+
+  const signalMap = {
+    'velocity_burst': 'Critical Transaction Velocity Detected (>10/hr)',
+    'velocity': 'Elevated Transaction Velocity',
+    'high_amount': 'Transaction Amount Significantly Above User Median',
+    'amount_10x_baseline': 'Extreme Deviation from User Spending Baseline (10x)',
+    'geo_extreme': 'Extreme Geographic Mismatch with Device / History',
+    'new_location': 'First Transaction from this Geographic Region',
+    'full_drain': 'Potential Account Emptying Pattern Detected',
+    'new_account': 'Account is less than 30 days old',
+    'risky_merchant': 'Merchant carries a high historical risk score',
+    'blacklisted_ip': 'IP Address is known for fraudulent activity',
+    'blacklisted_device': 'Device ID is linked to coordinated fraud',
+    'blacklisted_recipient': 'Recipient account is on global fraud watchlist',
+    'vpn_detected': 'Suspected VPN/Proxy usage for location masking',
+  };
 
   useEffect(() => {
-    loadTransaction();
-  }, [id]);
-
-  const loadTransaction = async () => {
     setLoading(true);
-    const data = {
-      id,
-      sender: 'ACC_0001_JOHN_SMITH',
-      receiver: 'ACC_0002_MERCHANT_STORE',
-      amount: 450000,
-      risk_score: 0.78,
-      status: 'pending',
-      evidence: [
-        'Transaction amount exceeds user average by 300%',
-        'New recipient account (created 2 days ago)',
-        'High transaction velocity from this account',
-        'Recipient account shows suspicious patterns',
-        'Geographic mismatch with user location',
-      ],
-      createdAt: '2026-04-16 14:23:00',
-    };
-    setTransaction(data);
+    const found = allEvents.find(t => t.id === id || t.txn_id === id);
+    if (found) {
+        // Map signals to human readable evidence if not already done
+        const evidence = found.signals ? found.signals.map(s => signalMap[s] || s) : (found.evidence || []);
+        setTransaction({ ...found, evidence });
+    }
     setLoading(false);
-  };
+  }, [id, allEvents]);
+
+  const resolveReview = useStore(state => state.resolveReview);
 
   const handleSubmit = async () => {
     if (!decision) return;
     setReviewing(true);
     try {
       await submitReview(id, { decision, notes: '' });
-      alert('Review submitted successfully');
-      loadTransaction();
-      setDecision(null);
+      resolveReview(id, decision);
+      
+      const pastTense = decision === 'reject' ? 'rejected' : decision === 'approve' ? 'approved' : 'escalated';
+      setToast({ show: true, message: `Transaction successfully ${pastTense}`, type: 'success' });
+      
+      setTimeout(() => {
+        navigate('/queue');
+      }, 1500);
+      
     } catch (error) {
       console.error('Error submitting review:', error);
-      alert('Failed to submit review');
+      setToast({ show: true, message: 'Failed to process review', type: 'error' });
+      setReviewing(false);
     }
-    setReviewing(false);
   };
 
   const card = darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200';
@@ -75,7 +88,19 @@ export default function TransactionDetail({ darkMode }) {
     : darkMode ? 'bg-amber-950 border-amber-800' : 'bg-amber-50 border-amber-200';
 
   return (
-    <div className="space-y-5 max-w-4xl">
+    <div className="space-y-5 max-w-4xl relative">
+      {/* Toast Notification */}
+      {toast.show && (
+        <div className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-lg shadow-lg border animate-in slide-in-from-top-4 flex items-center space-x-3 ${
+          toast.type === 'success' 
+            ? (darkMode ? 'bg-green-900/90 text-green-100 border-green-700' : 'bg-green-100 text-green-800 border-green-300') 
+            : (darkMode ? 'bg-red-900/90 text-red-100 border-red-700' : 'bg-red-100 text-red-800 border-red-300')
+        }`}>
+          {toast.type === 'success' ? <FiCheckCircle className="w-5 h-5" /> : <FiXCircle className="w-5 h-5" />}
+          <span className="font-semibold text-sm">{toast.message}</span>
+        </div>
+      )}
+
       {/* Back */}
       <Link to="/queue" className={`inline-flex items-center space-x-2 text-sm font-medium transition-colors ${
         darkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'
