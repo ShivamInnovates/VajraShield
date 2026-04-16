@@ -16,7 +16,7 @@ const severityColors = {
   critical: { bg: 'bg-red-500/10 border-red-500/30', text: 'text-red-400' },
   high: { bg: 'bg-orange-500/10 border-orange-500/30', text: 'text-orange-400' },
   warning: { bg: 'bg-amber-500/10 border-amber-500/30', text: 'text-amber-400' },
-  info: { bg: 'bg-blue-500/10 border-blue-500/30', text: 'text-blue-400' },
+  info: { bg: 'bg-teal-500/10 border-teal-500/30', text: 'text-teal-400' },
 };
 
 const channelIcons = {
@@ -69,7 +69,7 @@ export default function AlertSettingsPage({ darkMode }) {
         {[
           { channel: 'PagerDuty', icon: FiPhone, count: rules.filter(r => r.channel === 'pagerduty' && r.enabled).length, color: 'text-red-400', bg: 'bg-red-500/10' },
           { channel: 'Slack', icon: FiSlack, count: rules.filter(r => r.channel === 'slack' && r.enabled).length, color: 'text-violet-400', bg: 'bg-violet-500/10' },
-          { channel: 'Email', icon: FiMail, count: rules.filter(r => r.channel === 'email' && r.enabled).length, color: 'text-blue-400', bg: 'bg-blue-500/10' },
+          { channel: 'Email', icon: FiMail, count: rules.filter(r => r.channel === 'email' && r.enabled).length, color: 'text-teal-400', bg: 'bg-teal-500/10' },
           { channel: 'Active Rules', icon: FiBell, count: rules.filter(r => r.enabled).length, color: 'text-green-400', bg: 'bg-green-500/10' },
         ].map((ch, i) => (
           <div key={i} className={`p-4 rounded-xl border ${darkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'}`}>

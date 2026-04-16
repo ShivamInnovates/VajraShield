@@ -2,23 +2,27 @@ import React from 'react';
 
 const colorMap = {
   red: {
-    dark: { bg: 'bg-red-950 border-red-800', text: 'text-red-400', icon: 'text-red-500', label: 'text-red-300' },
-    light: { bg: 'bg-red-50 border-red-200', text: 'text-red-700', icon: 'text-red-500', label: 'text-red-600' },
+    dark: { bg: 'bg-red-950 border-red-800', text: 'text-red-300', icon: 'text-red-400', label: 'text-red-200' },
+    light: { bg: 'bg-red-50 border-red-200', text: 'text-red-800', icon: 'text-red-600', label: 'text-red-700' },
   },
   yellow: {
-    dark: { bg: 'bg-amber-950 border-amber-800', text: 'text-amber-400', icon: 'text-amber-500', label: 'text-amber-300' },
-    light: { bg: 'bg-amber-50 border-amber-200', text: 'text-amber-700', icon: 'text-amber-500', label: 'text-amber-600' },
+    dark: { bg: 'bg-amber-950 border-amber-800', text: 'text-amber-300', icon: 'text-amber-400', label: 'text-amber-200' },
+    light: { bg: 'bg-amber-50 border-amber-200', text: 'text-amber-800', icon: 'text-amber-600', label: 'text-amber-700' },
   },
   green: {
-    dark: { bg: 'bg-green-950 border-green-800', text: 'text-green-400', icon: 'text-green-500', label: 'text-green-300' },
-    light: { bg: 'bg-green-50 border-green-200', text: 'text-green-700', icon: 'text-green-500', label: 'text-green-600' },
+    dark: { bg: 'bg-green-950 border-green-800', text: 'text-green-300', icon: 'text-green-400', label: 'text-green-200' },
+    light: { bg: 'bg-green-50 border-green-200', text: 'text-green-800', icon: 'text-green-600', label: 'text-green-700' },
   },
-  blue: {
-    dark: { bg: 'bg-blue-950 border-blue-800', text: 'text-blue-400', icon: 'text-blue-500', label: 'text-blue-300' },
-    light: { bg: 'bg-blue-50 border-blue-200', text: 'text-blue-700', icon: 'text-blue-500', label: 'text-blue-600' },
+  teal: {
+    dark: { bg: 'bg-teal-950 border-teal-800', text: 'text-teal-300', icon: 'text-teal-400', label: 'text-teal-200' },
+    light: { bg: 'bg-teal-50 border-teal-200', text: 'text-teal-800', icon: 'text-teal-600', label: 'text-teal-700' },
+  },
+  slate: {
+    dark: { bg: 'bg-slate-950 border-slate-800', text: 'text-slate-300', icon: 'text-slate-400', label: 'text-slate-200' },
+    light: { bg: 'bg-slate-50 border-slate-200', text: 'text-slate-800', icon: 'text-slate-600', label: 'text-slate-700' },
   },
   default: {
-    dark: { bg: 'bg-gray-800 border-gray-700', text: 'text-white', icon: 'text-gray-400', label: 'text-gray-400' },
+    dark: { bg: 'bg-slate-900 border-slate-800', text: 'text-white', icon: 'text-slate-400', label: 'text-slate-400' },
     light: { bg: 'bg-white border-gray-200', text: 'text-gray-900', icon: 'text-gray-500', label: 'text-gray-600' },
   },
 };

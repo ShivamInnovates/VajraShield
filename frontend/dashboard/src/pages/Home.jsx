@@ -37,31 +37,31 @@ export default function Home({ darkMode }) {
     return map[status] || map.pending;
   };
 
-  const card = darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200';
-  const cardHover = darkMode ? 'hover:border-gray-600' : 'hover:shadow-md hover:border-gray-300';
+  const card = darkMode ? 'bg-black border-zinc-800' : 'bg-white border-gray-200';
+  const cardHover = darkMode ? 'hover:bg-zinc-950 hover:border-zinc-700' : 'hover:shadow-md hover:border-gray-300';
   const title = darkMode ? 'text-white' : 'text-gray-900';
-  const sub = darkMode ? 'text-gray-400' : 'text-gray-600';
+  const sub = darkMode ? 'text-gray-300' : 'text-gray-600';
   const label = darkMode ? 'text-gray-500' : 'text-gray-500';
-  const divider = darkMode ? 'border-gray-700' : 'border-gray-100';
+  const divider = darkMode ? 'border-zinc-800' : 'border-gray-100';
 
   return (
-    <div className="space-y-4 max-w-7xl">
+    <div className="space-y-4 w-full">
       {/* Welcome Banner */}
       <div className={`p-5 rounded-xl border ${
         darkMode
-          ? 'bg-gradient-to-r from-indigo-950 to-gray-900 border-indigo-800'
-          : 'bg-gradient-to-r from-indigo-50 to-blue-50 border-indigo-200'
+          ? 'bg-gradient-to-r from-zinc-900 to-black border-zinc-700'
+          : 'bg-gradient-to-r from-gray-50 to-white border-gray-200'
       }`}>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="min-w-0">
-            <p className={`text-xs font-semibold uppercase tracking-widest ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>
+            <p className={`text-xs font-semibold uppercase tracking-widest ${darkMode ? 'text-amber-400' : 'text-amber-700'}`}>
               Welcome Back
             </p>
             <h1 className={`text-3xl sm:text-4xl font-bold mt-2 ${title}`}>Shivaji</h1>
             <p className={`mt-1 text-sm font-medium ${sub}`}>Transaction Risk Management System</p>
           </div>
           <div className={`px-4 py-3 sm:px-5 sm:py-4 rounded-xl border flex-shrink-0 ${
-            darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-indigo-200'
+            darkMode ? 'bg-black border-zinc-700' : 'bg-white border-gray-200'
           }`}>
             <p className={`text-xs font-semibold uppercase tracking-wide ${label}`}>System Status</p>
             <div className="flex items-center space-x-2 mt-2">
@@ -77,7 +77,7 @@ export default function Home({ darkMode }) {
         {[
           { label: 'Pending Review', value: metrics.pendingReview, sub: 'Transactions awaiting action', icon: FiClock, iconBg: darkMode ? 'bg-amber-900' : 'bg-amber-100', iconColor: darkMode ? 'text-amber-400' : 'text-amber-600', bar: 'bg-amber-500', barW: 'w-1/3', valColor: darkMode ? 'text-white' : 'text-gray-900' },
           { label: 'Approved Today', value: metrics.approvedToday, sub: 'Low-risk transactions', icon: FiCheckCircle, iconBg: darkMode ? 'bg-green-900' : 'bg-green-100', iconColor: darkMode ? 'text-green-400' : 'text-green-600', bar: 'bg-green-500', barW: 'w-2/3', valColor: darkMode ? 'text-green-400' : 'text-green-600' },
-          { label: 'Avg Processing', value: metrics.avgProcessingTime, sub: 'Per transaction', icon: MdSpeed, iconBg: darkMode ? 'bg-blue-900' : 'bg-blue-100', iconColor: darkMode ? 'text-blue-400' : 'text-blue-600', bar: 'bg-blue-500', barW: 'w-3/4', valColor: darkMode ? 'text-white' : 'text-gray-900' },
+          { label: 'Avg Processing', value: metrics.avgProcessingTime, sub: 'Per transaction', icon: MdSpeed, iconBg: darkMode ? 'bg-orange-900' : 'bg-orange-100', iconColor: darkMode ? 'text-orange-400' : 'text-orange-600', bar: 'bg-orange-500', barW: 'w-3/4', valColor: darkMode ? 'text-white' : 'text-gray-900' },
         ].map((m, i) => (
           <div key={i} className={`p-5 rounded-xl border ${card} ${cardHover} transition-all`}>
             <div className="flex items-start justify-between">
@@ -90,7 +90,7 @@ export default function Home({ darkMode }) {
                 <m.icon className={`w-5 h-5 ${m.iconColor}`} />
               </div>
             </div>
-            <div className={`mt-4 h-1 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
+            <div className={`mt-4 h-1 rounded-full ${darkMode ? 'bg-zinc-800' : 'bg-gray-200'}`}>
               <div className={`h-full rounded-full ${m.bar} ${m.barW}`}></div>
             </div>
           </div>
@@ -100,8 +100,8 @@ export default function Home({ darkMode }) {
       {/* System Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
         {[
-          { label: 'Active Modules', value: metrics.activeModules, icon: HiSparkles, iconBg: darkMode ? 'bg-purple-900' : 'bg-purple-100', iconColor: darkMode ? 'text-purple-400' : 'text-purple-600' },
-          { label: 'Model Accuracy', value: metrics.modelAccuracy, icon: MdAnalytics, iconBg: darkMode ? 'bg-blue-900' : 'bg-blue-100', iconColor: darkMode ? 'text-blue-400' : 'text-blue-600' },
+          { label: 'Active Modules', value: metrics.activeModules, icon: HiSparkles, iconBg: darkMode ? 'bg-amber-900' : 'bg-amber-100', iconColor: darkMode ? 'text-amber-400' : 'text-amber-600' },
+          { label: 'Model Accuracy', value: metrics.modelAccuracy, icon: MdAnalytics, iconBg: darkMode ? 'bg-zinc-900' : 'bg-gray-100', iconColor: darkMode ? 'text-gray-300' : 'text-gray-700' },
           { label: 'SLA Compliance', value: metrics.slaCompliance, icon: FiTarget, iconBg: darkMode ? 'bg-green-900' : 'bg-green-100', iconColor: darkMode ? 'text-green-400' : 'text-green-600' },
           { label: 'System Status', value: 'Online', icon: FiRadio, iconBg: darkMode ? 'bg-green-900' : 'bg-green-100', iconColor: darkMode ? 'text-green-400 animate-pulse' : 'text-green-600 animate-pulse', valColor: darkMode ? 'text-green-400' : 'text-green-600' },
         ].map((s, i) => (
@@ -129,7 +129,7 @@ export default function Home({ darkMode }) {
             <h2 className={`text-base font-bold ${title}`}>Recent Transactions</h2>
           </div>
           <a href="/queue" className={`flex items-center space-x-1.5 text-sm font-medium transition-colors ${
-            darkMode ? 'text-indigo-400 hover:text-indigo-300' : 'text-indigo-600 hover:text-indigo-700'
+            darkMode ? 'text-emerald-400 hover:text-emerald-300' : 'text-emerald-700 hover:text-emerald-800'
           }`}>
             <span>View All</span>
             <FiArrowRight className="w-4 h-4" />
@@ -141,10 +141,10 @@ export default function Home({ darkMode }) {
             const risk = getRiskBadge(txn.risk_score);
             return (
               <div key={txn.id} className={`flex items-center justify-between p-3 rounded-lg border transition-all cursor-pointer gap-3 ${
-                darkMode ? 'border-gray-700 hover:bg-gray-700' : 'border-gray-100 hover:bg-gray-50'
+                darkMode ? 'border-zinc-800 hover:bg-zinc-950' : 'border-gray-100 hover:bg-gray-50'
               }`}>
                 <div className="flex items-center space-x-2 flex-1 min-w-0">
-                  <div className={`p-2 rounded-lg flex-shrink-0 ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
+                  <div className={`p-2 rounded-lg flex-shrink-0 ${darkMode ? 'bg-zinc-900' : 'bg-gray-100'}`}>
                     <FiDollarSign className={`w-4 h-4 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`} />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -177,8 +177,8 @@ export default function Home({ darkMode }) {
         {/* Summary */}
         <div className={`rounded-xl border ${card}`}>
           <div className={`px-5 py-3 border-b ${divider} flex items-center space-x-3`}>
-            <div className={`p-2 rounded-lg ${darkMode ? 'bg-blue-900' : 'bg-blue-100'}`}>
-              <FiActivity className={`w-4 h-4 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
+            <div className={`p-2 rounded-lg ${darkMode ? 'bg-zinc-900' : 'bg-gray-100'}`}>
+              <FiActivity className={`w-4 h-4 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`} />
             </div>
             <h3 className={`font-bold text-sm ${title}`}>Summary</h3>
           </div>
@@ -188,7 +188,7 @@ export default function Home({ darkMode }) {
               { label: 'Flagged', value: metrics.flaggedCount, color: darkMode ? 'text-red-400' : 'text-red-600', icon: FiAlertCircle },
               { label: 'Rejected Today', value: metrics.rejectedToday, color: darkMode ? 'text-orange-400' : 'text-orange-600' },
             ].map((row, i) => (
-              <div key={i} className={`flex items-center justify-between px-3 py-2.5 rounded-lg ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'} transition-colors`}>
+              <div key={i} className={`flex items-center justify-between px-3 py-2.5 rounded-lg ${darkMode ? 'hover:bg-zinc-950' : 'hover:bg-gray-50'} transition-colors`}>
                 <span className={`text-sm font-medium flex items-center space-x-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                   {row.icon && <row.icon className="w-3.5 h-3.5" />}
                   <span>{row.label}</span>
@@ -209,16 +209,16 @@ export default function Home({ darkMode }) {
           </div>
           <div className="p-3 space-y-2">
             <a href="/queue" className={`block p-3 rounded-lg border transition-all ${
-              darkMode ? 'bg-indigo-950 border-indigo-800 hover:bg-indigo-900' : 'bg-indigo-50 border-indigo-200 hover:bg-indigo-100'
+              darkMode ? 'bg-emerald-950 border-emerald-800 hover:bg-emerald-900' : 'bg-emerald-50 border-emerald-200 hover:bg-emerald-100'
             }`}>
-              <p className={`font-semibold text-sm ${darkMode ? 'text-indigo-300' : 'text-indigo-900'}`}>Review Queue</p>
-              <p className={`text-xs mt-0.5 ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>{metrics.pendingReview} transactions pending</p>
+              <p className={`font-semibold text-sm ${darkMode ? 'text-emerald-300' : 'text-emerald-900'}`}>Review Queue</p>
+              <p className={`text-xs mt-0.5 ${darkMode ? 'text-emerald-400' : 'text-emerald-700'}`}>{metrics.pendingReview} transactions pending</p>
             </a>
             <a href="/dashboard" className={`block p-3 rounded-lg border transition-all ${
-              darkMode ? 'bg-purple-950 border-purple-800 hover:bg-purple-900' : 'bg-purple-50 border-purple-200 hover:bg-purple-100'
+              darkMode ? 'bg-orange-950 border-orange-800 hover:bg-orange-900' : 'bg-orange-50 border-orange-200 hover:bg-orange-100'
             }`}>
-              <p className={`font-semibold text-sm ${darkMode ? 'text-purple-300' : 'text-purple-900'}`}>View Analytics</p>
-              <p className={`text-xs mt-0.5 ${darkMode ? 'text-purple-400' : 'text-purple-600'}`}>Detailed metrics and trends</p>
+              <p className={`font-semibold text-sm ${darkMode ? 'text-orange-300' : 'text-orange-900'}`}>View Analytics</p>
+              <p className={`text-xs mt-0.5 ${darkMode ? 'text-orange-400' : 'text-orange-700'}`}>Detailed metrics and trends</p>
             </a>
           </div>
         </div>
@@ -227,20 +227,20 @@ export default function Home({ darkMode }) {
       {/* JARSH Banner */}
       <div className={`p-4 rounded-xl border ${
         darkMode
-          ? 'bg-gradient-to-br from-purple-950 to-indigo-950 border-purple-800'
-          : 'bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-200'
+          ? 'bg-gradient-to-br from-zinc-900 to-black border-zinc-700'
+          : 'bg-gradient-to-br from-gray-50 to-white border-gray-200'
       }`}>
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
           <div>
             <div className="flex items-center space-x-2 mb-2">
-              <HiSparkles className={`w-4 h-4 ${darkMode ? 'text-purple-400' : 'text-purple-600'}`} />
-              <p className={`text-xs font-bold uppercase tracking-widest ${darkMode ? 'text-purple-400' : 'text-purple-600'}`}>AI Assistant</p>
+              <HiSparkles className={`w-4 h-4 ${darkMode ? 'text-amber-400' : 'text-amber-700'}`} />
+              <p className={`text-xs font-bold uppercase tracking-widest ${darkMode ? 'text-amber-400' : 'text-amber-700'}`}>AI Assistant</p>
             </div>
-            <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-purple-900'}`}>Meet JARSH</h2>
-            <p className={`text-sm mt-1 ${darkMode ? 'text-purple-300' : 'text-purple-700'}`}>Your intelligent risk management companion</p>
+            <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Meet JARSH</h2>
+            <p className={`text-sm mt-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Your intelligent risk management companion</p>
           </div>
-          <div className={`w-14 h-14 rounded-full flex items-center justify-center ${darkMode ? 'bg-purple-800' : 'bg-purple-100'}`}>
-            <HiSparkles className={`w-7 h-7 ${darkMode ? 'text-purple-300' : 'text-purple-600'} animate-pulse`} />
+          <div className={`w-14 h-14 rounded-full flex items-center justify-center ${darkMode ? 'bg-zinc-800' : 'bg-gray-100'}`}>
+            <HiSparkles className={`w-7 h-7 ${darkMode ? 'text-amber-300' : 'text-amber-600'} animate-pulse`} />
           </div>
         </div>
 
@@ -252,22 +252,24 @@ export default function Home({ darkMode }) {
             { icon: FiPhone, label: '24/7 Support', desc: 'Always available' },
           ].map((f, i) => (
             <div key={i} className={`p-2.5 rounded-lg border ${
-              darkMode ? 'bg-purple-900/40 border-purple-800' : 'bg-white/60 border-purple-200'
+              darkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-gray-200'
             }`}>
-              <f.icon className={`w-4 h-4 mb-2 ${darkMode ? 'text-purple-400' : 'text-purple-600'}`} />
-              <p className={`text-xs font-semibold ${darkMode ? 'text-purple-200' : 'text-purple-800'}`}>{f.label}</p>
-              <p className={`text-xs mt-0.5 ${darkMode ? 'text-purple-400' : 'text-purple-600'}`}>{f.desc}</p>
+              <f.icon className={`w-4 h-4 mb-2 ${darkMode ? 'text-amber-400' : 'text-amber-700'}`} />
+              <p className={`text-xs font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>{f.label}</p>
+              <p className={`text-xs mt-0.5 ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>{f.desc}</p>
             </div>
           ))}
         </div>
 
         <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-lg border ${
-          darkMode ? 'bg-purple-900/30 border-purple-800' : 'bg-white/40 border-purple-200'
+          darkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-gray-200'
         }`}>
-          <p className={`text-sm font-medium ${darkMode ? 'text-purple-200' : 'text-purple-800'}`}>
+          <p className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>
             Ready to enhance your transaction review process?
           </p>
-          <button className="flex items-center justify-center space-x-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold transition-colors whitespace-nowrap">
+          <button className={`flex items-center justify-center space-x-2 px-4 py-2 text-white rounded-lg text-sm font-semibold transition-colors whitespace-nowrap ${
+            darkMode ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-black hover:bg-gray-900'
+          }`}>
             <span>Start Chat</span>
             <FiArrowRight className="w-3.5 h-3.5" />
           </button>

@@ -41,8 +41,8 @@ export default function FloatingChat({ darkMode }) {
   const headerBg = darkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200';
   const inputBg = darkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200';
   const inputField = darkMode
-    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-indigo-500'
-    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:border-indigo-400';
+    ? 'bg-zinc-900 border-zinc-700 text-white placeholder-gray-400 focus:border-emerald-500'
+    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500';
 
   return (
     <>
@@ -50,7 +50,7 @@ export default function FloatingChat({ darkMode }) {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`fixed bottom-6 right-6 w-14 h-14 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 hover:scale-110 z-50 ${
-          isOpen ? 'bg-gray-700 hover:bg-gray-600' : 'bg-indigo-600 hover:bg-indigo-700'
+          isOpen ? 'bg-zinc-800 hover:bg-zinc-700' : darkMode ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-black hover:bg-gray-900'
         }`}
       >
         {isOpen
@@ -66,7 +66,9 @@ export default function FloatingChat({ darkMode }) {
           {/* Header */}
           <div className={`px-4 py-3 border-b flex items-center justify-between flex-shrink-0 ${headerBg}`}>
             <div className="flex items-center space-x-3">
-              <div className="w-9 h-9 bg-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${
+                darkMode ? 'bg-emerald-600' : 'bg-black'
+              }`}>
                 <HiSparkles className="w-4 h-4 text-white" />
               </div>
               <div>
@@ -91,14 +93,14 @@ export default function FloatingChat({ darkMode }) {
               <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[75%] px-3.5 py-2.5 rounded-2xl text-sm ${
                   msg.sender === 'user'
-                    ? 'bg-indigo-600 text-white rounded-br-sm'
+                    ? darkMode ? 'bg-emerald-600 text-white rounded-br-sm' : 'bg-black text-white rounded-br-sm'
                     : darkMode
-                      ? 'bg-gray-800 text-gray-200 rounded-bl-sm'
+                      ? 'bg-zinc-900 text-gray-200 rounded-bl-sm'
                       : 'bg-gray-100 text-gray-800 rounded-bl-sm'
                 }`}>
                   <p className="leading-relaxed">{msg.text}</p>
                   <p className={`text-xs mt-1 ${
-                    msg.sender === 'user' ? 'text-indigo-200' : darkMode ? 'text-gray-500' : 'text-gray-400'
+                    msg.sender === 'user' ? 'text-gray-200' : darkMode ? 'text-gray-500' : 'text-gray-400'
                   }`}>
                     {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </p>
@@ -117,12 +119,14 @@ export default function FloatingChat({ darkMode }) {
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSend()}
                 placeholder="Ask JARSH anything..."
-                className={`flex-1 px-3 py-2 rounded-xl border text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 ${inputField}`}
+                className={`flex-1 px-3 py-2 rounded-xl border text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 ${inputField}`}
               />
               <button
                 onClick={handleSend}
                 disabled={!inputValue.trim()}
-                className="p-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl transition-colors"
+                className={`p-2 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl transition-colors ${
+                  darkMode ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-black hover:bg-gray-900'
+                }`}
               >
                 <FiSend className="w-4 h-4" />
               </button>

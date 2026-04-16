@@ -58,7 +58,7 @@ export default function LanePipelineView({ darkMode }) {
         <h3 className={`text-sm font-bold uppercase tracking-wider mb-4 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>Transaction Flow</h3>
         <div className="flex items-center justify-between overflow-x-auto pb-2 gap-2">
           {[
-            { label: 'Incoming', sub: 'Payment App', color: 'bg-blue-500' },
+            { label: 'Incoming', sub: 'Payment App', color: 'bg-teal-500' },
             { label: 'Layer 3.5 Filter', sub: `${laneData.filter.signals} signals, ${laneData.filter.avgTime}`, color: 'bg-cyan-500' },
             { label: 'Cold Start Check', sub: `<${laneData.coldStart.threshold} txns → Lane 2`, color: 'bg-amber-500' },
             { label: 'Lane Decision', sub: 'Threshold routing', color: 'bg-indigo-500' },

@@ -67,7 +67,7 @@ export default function Sidebar({ darkMode, onLogout }) {
       {/* Logo */}
       <div className="flex items-center space-x-3 mb-8">
         <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-xl ${
-          darkMode ? 'bg-gradient-to-br from-indigo-500 to-cyan-500 text-white' : 'bg-black text-white'
+          darkMode ? 'bg-zinc-800 border border-zinc-700 text-white' : 'bg-black text-white'
         }`}>
           V
         </div>
@@ -92,9 +92,9 @@ export default function Sidebar({ darkMode, onLogout }) {
                   to={item.path}
                   className={`flex items-center space-x-3 px-4 py-2.5 rounded-lg transition-colors text-sm ${
                     isActive(item.path)
-                      ? darkMode ? 'bg-white/10 text-white font-semibold' : 'bg-black/10 text-black font-semibold'
+                      ? darkMode ? 'bg-zinc-800 text-white font-semibold' : 'bg-black/10 text-black font-semibold'
                       : darkMode
-                        ? 'text-gray-400 hover:bg-white/5 hover:text-gray-300'
+                        ? 'text-gray-400 hover:bg-zinc-900 hover:text-white'
                         : 'text-gray-700 hover:bg-gray-100'
                   }`}
                 >
@@ -114,7 +114,7 @@ export default function Sidebar({ darkMode, onLogout }) {
       <div className={`pt-6 border-t ${darkMode ? 'border-gray-800' : 'border-gray-200'}`}>
         <div className="flex items-center space-x-3 px-4 py-3">
           <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${
-            darkMode ? 'bg-gradient-to-br from-indigo-500 to-cyan-500 text-white' : 'bg-black text-white'
+            darkMode ? 'bg-zinc-800 border border-zinc-700 text-white' : 'bg-black text-white'
           }`}>
             S
           </div>

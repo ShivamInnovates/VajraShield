@@ -21,11 +21,11 @@ export default function TopBar({ darkMode, setDarkMode }) {
     return '';
   };
 
-  const bg = darkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200';
+  const bg = darkMode ? 'bg-black border-zinc-800' : 'bg-white border-gray-200';
   const titleColor = darkMode ? 'text-white' : 'text-gray-900';
   const subtitleColor = darkMode ? 'text-gray-400' : 'text-gray-500';
   const iconBtnBase = darkMode
-    ? 'text-gray-400 hover:text-white hover:bg-gray-800'
+    ? 'text-gray-400 hover:text-white hover:bg-zinc-900'
     : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100';
 
   return (
@@ -60,7 +60,7 @@ export default function TopBar({ darkMode, setDarkMode }) {
         {/* Account */}
         <button className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all text-sm font-medium ${iconBtnBase}`}>
           <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
-            darkMode ? 'bg-indigo-600 text-white' : 'bg-indigo-600 text-white'
+            darkMode ? 'bg-zinc-800 text-white border border-zinc-700' : 'bg-black text-white'
           }`}>
             S
           </div>

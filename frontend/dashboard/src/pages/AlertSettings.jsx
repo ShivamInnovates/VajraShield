@@ -248,8 +248,8 @@ export default function AlertSettings({ darkMode }) {
           onClick={handleSave}
           className={`px-6 py-3 rounded-lg font-semibold transition-all flex items-center space-x-2 ${
             darkMode
-              ? 'bg-blue-600 hover:bg-blue-500 text-white'
-              : 'bg-blue-600 hover:bg-blue-700 text-white'
+              ? 'bg-teal-600 hover:bg-teal-500 text-white'
+              : 'bg-teal-600 hover:bg-teal-700 text-white'
           }`}
         >
           <FiSave className="w-4 h-4" />

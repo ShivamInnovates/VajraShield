@@ -16,7 +16,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Scrollbar styling */
+/* Scrollbar styling - professional tech-inspired colors */
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -24,9 +24,9 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #4b5563;
+  background: #0f6661;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #6b7280;
+  background: #1a8680;
 }

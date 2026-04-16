@@ -58,7 +58,7 @@ export default function Dashboard({ darkMode }) {
   };
 
   return (
-    <div className="space-y-5 max-w-6xl">
+    <div className="space-y-5 w-full">
       {/* Header */}
       <div className={`p-4 rounded-xl border ${card} flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3`}>
         <div>

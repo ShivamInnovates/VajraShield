@@ -34,7 +34,7 @@ export default function ReviewQueue({ darkMode }) {
   const sub = darkMode ? 'text-gray-400' : 'text-gray-600';
 
   return (
-    <div className="space-y-5 max-w-6xl">
+    <div className="space-y-5 w-full">
       {/* Header */}
       <div className={`p-5 rounded-xl border ${card}`}>
         <div className="flex items-center justify-between">
