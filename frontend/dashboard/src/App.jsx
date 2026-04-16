@@ -19,18 +19,17 @@ import Sidebar from './components/Sidebar';
 import TopBar from './components/TopBar';
 import FloatingChat from './components/FloatingChat';
 import AuthGuard from './components/AuthGuard';
+import authService from './services/authService';
 
 export default function App() {
   const [darkMode, setDarkMode] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('auth_token'));
+  const [authVersion, setAuthVersion] = useState(0); // triggers re-render on login/logout
 
-  const handleLogin = () => setIsAuthenticated(true);
+  const handleLogin = () => setAuthVersion(v => v + 1);
+
   const handleLogout = () => {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('user_role');
-    localStorage.removeItem('user_name');
-    localStorage.removeItem('login_time');
-    setIsAuthenticated(false);
+    authService.logout();
+    setAuthVersion(v => v + 1);
   };
 
   return (
@@ -41,7 +40,7 @@ export default function App() {
 
         {/* All protected routes */}
         <Route path="*" element={
-          <AuthGuard>
+          <AuthGuard key={authVersion}>
             <div className={`flex min-h-screen ${darkMode ? 'bg-black' : 'bg-white'}`}>
               <Sidebar darkMode={darkMode} onLogout={handleLogout} />
               <div className="flex-1 flex flex-col">

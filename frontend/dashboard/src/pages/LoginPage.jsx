@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiShield, FiLock, FiMail, FiEye, FiEyeOff, FiAlertTriangle, FiCheckCircle } from 'react-icons/fi';
+import authService from '../services/authService';
 
 export default function LoginPage({ onLogin }) {
   const navigate = useNavigate();
@@ -11,21 +12,22 @@ export default function LoginPage({ onLogin }) {
   const [mfaCode, setMfaCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [userName, setUserName] = useState('');
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-    try {
-      // Simulate auth delay
-      await new Promise(r => setTimeout(r, 800));
-      if (email && password.length >= 6) {
-        setMfaStep(true);
-      } else {
-        setError('Invalid email or password (min 6 characters)');
-      }
-    } catch (err) {
-      setError('Authentication failed. Please try again.');
+
+    // Simulate network delay
+    await new Promise(r => setTimeout(r, 600));
+
+    const result = authService.login(email, password);
+    if (result.success) {
+      setUserName(result.userName);
+      setMfaStep(true);
+    } else {
+      setError(result.error);
     }
     setLoading(false);
   };
@@ -34,18 +36,15 @@ export default function LoginPage({ onLogin }) {
     e.preventDefault();
     setLoading(true);
     setError('');
-    await new Promise(r => setTimeout(r, 600));
-    if (mfaCode.length === 6) {
-      // Mock JWT token
-      const mockToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock.' + Date.now();
-      localStorage.setItem('auth_token', mockToken);
-      localStorage.setItem('user_role', 'senior_analyst');
-      localStorage.setItem('user_name', email.split('@')[0]);
-      localStorage.setItem('login_time', new Date().toISOString());
+
+    await new Promise(r => setTimeout(r, 400));
+
+    const result = authService.verifyMFA(mfaCode);
+    if (result.success) {
       if (onLogin) onLogin();
       navigate('/');
     } else {
-      setError('Invalid MFA code. Enter 6 digits.');
+      setError(result.error);
     }
     setLoading(false);
   };
@@ -149,7 +148,7 @@ export default function LoginPage({ onLogin }) {
               <div className="mb-6">
                 <div className="flex items-center space-x-2 mb-2">
                   <FiCheckCircle className="w-5 h-5 text-green-400" />
-                  <span className="text-green-400 text-sm font-medium">Credentials verified</span>
+                  <span className="text-green-400 text-sm font-medium">Welcome, {userName}</span>
                 </div>
                 <h2 className="text-xl font-bold text-white">Multi-Factor Authentication</h2>
                 <p className="text-gray-400 text-sm mt-1">Enter the 6-digit code from your authenticator app</p>

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import authService from './authService';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
@@ -9,14 +10,27 @@ const apiClient = axios.create({
   },
 });
 
-// Add JWT token to requests
+// Add JWT token to every outgoing request
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('auth_token');
+  const token = authService.getToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
+
+// Handle 401 responses — auto-logout and redirect to login
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      authService.logout();
+      // Redirect to login page
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
 
 export const fetchFlaggedTransactions = (params) => {
   return apiClient.get('/api/v1/transactions/flagged', { params }).then(res => res.data);
@@ -34,13 +48,4 @@ export const submitReview = (txnId, reviewData) => {
   return apiClient.post(`/api/v1/transactions/${txnId}/review`, reviewData).then(res => res.data);
 };
 
-export const login = (email, password) => {
-  return apiClient.post('/api/v1/auth/login', { email, password }).then(res => {
-    localStorage.setItem('auth_token', res.data.token);
-    return res.data;
-  });
-};
-
-export const logout = () => {
-  localStorage.removeItem('auth_token');
-};
+export default apiClient;
