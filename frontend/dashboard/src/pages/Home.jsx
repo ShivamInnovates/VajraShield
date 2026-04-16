@@ -1,294 +1,170 @@
-import React, { useState, useEffect } from 'react';
-import { FiBell, FiTrendingUp, FiAlertCircle, FiClock, FiCheckCircle, FiArrowRight, FiZap, FiShield, FiBook, FiPhone, FiTarget, FiActivity, FiLock, FiRadio, FiX } from 'react-icons/fi';
+import React, { useState } from 'react';
+import {
+  FiBell, FiAlertCircle, FiClock, FiCheckCircle,
+  FiArrowRight, FiZap, FiShield, FiBook, FiPhone, FiTarget,
+  FiActivity, FiRadio, FiDollarSign
+} from 'react-icons/fi';
 import { HiSparkles } from 'react-icons/hi';
-import { MdTrendingUp, MdAnalytics } from 'react-icons/md';
+import { MdAnalytics, MdSpeed } from 'react-icons/md';
 
 export default function Home({ darkMode }) {
-  const [recentTransactions, setRecentTransactions] = useState([]);
-  const [metrics, setMetrics] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [recentTransactions] = useState([
+    { id: 'TXN001', sender: 'John Smith', receiver: 'Merchant Store', amount: 450000, risk_score: 0.78, status: 'pending', time: '2 min ago' },
+    { id: 'TXN002', sender: 'Corporate Finance', receiver: 'Vendor Corp', amount: 2500000, risk_score: 0.65, status: 'pending', time: '15 min ago' },
+    { id: 'TXN003', sender: 'Retail Shop', receiver: 'Supplier', amount: 125000, risk_score: 0.35, status: 'approved', time: '45 min ago' },
+    { id: 'TXN004', sender: 'Unknown Account', receiver: 'Offshore Account', amount: 5000000, risk_score: 0.92, status: 'escalated', time: '1 hour ago' },
+  ]);
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  const metrics = {
+    totalTransactions: 1524, flaggedCount: 47, pendingReview: 12,
+    approvedToday: 156, rejectedToday: 8, avgProcessingTime: '4.2 min',
+    modelAccuracy: '94.2%', slaCompliance: '98.5%', activeModules: 7,
+  };
 
-  const loadData = () => {
-    // Mock recent transactions
-    const txns = [
-      {
-        id: 'TXN001',
-        sender: 'ACC_0001_JOHN_SMITH',
-        receiver: 'ACC_0002_MERCHANT_STORE',
-        amount: 450000,
-        risk_score: 0.78,
-        status: 'pending',
-        time: '2 min ago',
-      },
-      {
-        id: 'TXN002',
-        sender: 'ACC_0003_CORP_FINANCE',
-        receiver: 'ACC_0004_VENDOR_CORP',
-        amount: 2500000,
-        risk_score: 0.65,
-        status: 'pending',
-        time: '15 min ago',
-      },
-      {
-        id: 'TXN003',
-        sender: 'ACC_0005_RETAIL_SHOP',
-        receiver: 'ACC_0006_SUPPLIER',
-        amount: 125000,
-        risk_score: 0.35,
-        status: 'approved',
-        time: '45 min ago',
-      },
-      {
-        id: 'TXN004',
-        sender: 'ACC_0007_UNKNOWN',
-        receiver: 'ACC_0008_OFFSHORE',
-        amount: 5000000,
-        risk_score: 0.92,
-        status: 'escalated',
-        time: '1 hour ago',
-      },
-    ];
-    setRecentTransactions(txns);
+  const getRiskBadge = (score) => {
+    if (score > 0.8) return { bg: darkMode ? 'bg-red-900 border-red-700' : 'bg-red-100 border-red-300', text: darkMode ? 'text-red-300' : 'text-red-700', dot: 'bg-red-500' };
+    if (score > 0.6) return { bg: darkMode ? 'bg-amber-900 border-amber-700' : 'bg-amber-100 border-amber-300', text: darkMode ? 'text-amber-300' : 'text-amber-700', dot: 'bg-amber-500' };
+    if (score > 0.4) return { bg: darkMode ? 'bg-yellow-900 border-yellow-700' : 'bg-yellow-100 border-yellow-300', text: darkMode ? 'text-yellow-300' : 'text-yellow-700', dot: 'bg-yellow-500' };
+    return { bg: darkMode ? 'bg-green-900 border-green-700' : 'bg-green-100 border-green-300', text: darkMode ? 'text-green-300' : 'text-green-700', dot: 'bg-green-500' };
+  };
 
-    const data = {
-      totalTransactions: 1524,
-      flaggedCount: 47,
-      pendingReview: 12,
-      approvedToday: 156,
-      rejectedToday: 8,
-      avgProcessingTime: '4.2 min',
-      modelAccuracy: '94.2%',
-      slaCompliance: '98.5%',
-      activeModules: 7,
-      systemStatus: 'Online',
+  const getStatusBadge = (status) => {
+    const map = {
+      pending: darkMode ? 'bg-amber-900 text-amber-300 border border-amber-700' : 'bg-amber-100 text-amber-700 border border-amber-300',
+      approved: darkMode ? 'bg-green-900 text-green-300 border border-green-700' : 'bg-green-100 text-green-700 border border-green-300',
+      escalated: darkMode ? 'bg-red-900 text-red-300 border border-red-700' : 'bg-red-100 text-red-700 border border-red-300',
     };
-    setMetrics(data);
-    setIsLoading(false);
+    return map[status] || map.pending;
   };
 
-  const getRiskBadgeColor = (score) => {
-    if (score > 0.8) return { bg: darkMode ? 'bg-red-950/40' : 'bg-red-50', text: darkMode ? 'text-red-500' : 'text-red-700' };
-    if (score > 0.6) return { bg: darkMode ? 'bg-amber-950/40' : 'bg-amber-50', text: darkMode ? 'text-amber-500' : 'text-amber-700' };
-    if (score > 0.4) return { bg: darkMode ? 'bg-yellow-950/40' : 'bg-yellow-50', text: darkMode ? 'text-yellow-500' : 'text-yellow-700' };
-    return { bg: darkMode ? 'bg-green-950/40' : 'bg-green-50', text: darkMode ? 'text-green-500' : 'text-green-700' };
-  };
-
-  const getStatusIcon = (status) => {
-    if (status === 'pending') return <FiClock className="w-4 h-4 text-amber-500" />;
-    if (status === 'approved') return <FiCheckCircle className="w-4 h-4 text-green-500" />;
-    if (status === 'escalated') return <FiAlertCircle className="w-4 h-4 text-red-500" />;
-    return <FiCheckCircle className="w-4 h-4 text-gray-400" />;
-  };
-
-  if (!metrics) return <div className={`text-center py-8 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Loading...</div>;
+  const card = darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200';
+  const cardHover = darkMode ? 'hover:border-gray-600' : 'hover:shadow-md hover:border-gray-300';
+  const title = darkMode ? 'text-white' : 'text-gray-900';
+  const sub = darkMode ? 'text-gray-400' : 'text-gray-600';
+  const label = darkMode ? 'text-gray-500' : 'text-gray-500';
+  const divider = darkMode ? 'border-gray-700' : 'border-gray-100';
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 max-w-7xl">
       {/* Welcome Banner */}
-      <div className={`p-8 rounded-lg border-l-4 border-black ${
-        darkMode ? 'bg-gray-900 border border-gray-800' : 'bg-gradient-to-r from-gray-50 to-gray-100 border-r border-b border-gray-200'
+      <div className={`p-5 rounded-xl border ${
+        darkMode
+          ? 'bg-gradient-to-r from-indigo-950 to-gray-900 border-indigo-800'
+          : 'bg-gradient-to-r from-indigo-50 to-blue-50 border-indigo-200'
       }`}>
-        <div className="flex items-center justify-between">
-          <div>
-            <p className={`text-sm font-semibold uppercase tracking-wide ${darkMode ? 'text-gray-500' : 'text-gray-700'}`}>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="min-w-0">
+            <p className={`text-xs font-semibold uppercase tracking-widest ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>
               Welcome Back
             </p>
-            <h1 className={`text-4xl font-bold mt-2 ${darkMode ? 'text-white' : 'text-black'}`}>
-              Shivaji <span className={darkMode ? 'text-gray-400' : 'text-gray-600'}>Analyst</span>
-            </h1>
-            <p className={`mt-3 text-lg ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
-              Manage and review transaction risk in real-time
-            </p>
+            <h1 className={`text-3xl sm:text-4xl font-bold mt-2 ${title}`}>Shivaji</h1>
+            <p className={`mt-1 text-sm font-medium ${sub}`}>Transaction Risk Management System</p>
           </div>
-          <div className={`px-6 py-4 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white border border-gray-200'}`}>
-            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>System Status</p>
+          <div className={`px-4 py-3 sm:px-5 sm:py-4 rounded-xl border flex-shrink-0 ${
+            darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-indigo-200'
+          }`}>
+            <p className={`text-xs font-semibold uppercase tracking-wide ${label}`}>System Status</p>
             <div className="flex items-center space-x-2 mt-2">
-              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-              <span className={`font-semibold ${darkMode ? 'text-green-400' : 'text-green-600'}`}>Active</span>
+              <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"></div>
+              <span className={`font-semibold text-sm ${darkMode ? 'text-green-400' : 'text-green-600'}`}>Active</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Quick Stats with Animations */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className={`p-6 rounded-lg transition-all duration-300 hover:shadow-lg hover:scale-105 cursor-pointer transform ${
-          darkMode ? 'bg-gray-900 border border-gray-800 hover:border-amber-600' : 'bg-white border border-gray-200 shadow hover:shadow-xl'
-        }`}>
-          <div className="flex items-start justify-between">
-            <div>
-              <p className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>PENDING REVIEW</p>
-              <div className="flex items-baseline space-x-2 mt-3">
-                <p className={`text-4xl font-bold ${darkMode ? 'text-white' : 'text-black'}`}>{metrics.pendingReview}</p>
-                <span className="text-sm text-amber-600 font-semibold">Active</span>
+      {/* Key Metrics */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {[
+          { label: 'Pending Review', value: metrics.pendingReview, sub: 'Transactions awaiting action', icon: FiClock, iconBg: darkMode ? 'bg-amber-900' : 'bg-amber-100', iconColor: darkMode ? 'text-amber-400' : 'text-amber-600', bar: 'bg-amber-500', barW: 'w-1/3', valColor: darkMode ? 'text-white' : 'text-gray-900' },
+          { label: 'Approved Today', value: metrics.approvedToday, sub: 'Low-risk transactions', icon: FiCheckCircle, iconBg: darkMode ? 'bg-green-900' : 'bg-green-100', iconColor: darkMode ? 'text-green-400' : 'text-green-600', bar: 'bg-green-500', barW: 'w-2/3', valColor: darkMode ? 'text-green-400' : 'text-green-600' },
+          { label: 'Avg Processing', value: metrics.avgProcessingTime, sub: 'Per transaction', icon: MdSpeed, iconBg: darkMode ? 'bg-blue-900' : 'bg-blue-100', iconColor: darkMode ? 'text-blue-400' : 'text-blue-600', bar: 'bg-blue-500', barW: 'w-3/4', valColor: darkMode ? 'text-white' : 'text-gray-900' },
+        ].map((m, i) => (
+          <div key={i} className={`p-5 rounded-xl border ${card} ${cardHover} transition-all`}>
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <p className={`text-xs font-bold uppercase tracking-wider ${label}`}>{m.label}</p>
+                <p className={`text-3xl font-bold mt-2 ${m.valColor}`}>{m.value}</p>
+                <p className={`text-xs mt-2 ${sub}`}>{m.sub}</p>
+              </div>
+              <div className={`p-2.5 rounded-lg ${m.iconBg}`}>
+                <m.icon className={`w-5 h-5 ${m.iconColor}`} />
               </div>
             </div>
-            <div className={`p-3 rounded-lg ${darkMode ? 'bg-amber-500/20' : 'bg-amber-100'}`}>
-              <FiClock className={`w-7 h-7 ${darkMode ? 'text-amber-400 animate-pulse' : 'text-amber-600 animate-pulse'}`} />
+            <div className={`mt-4 h-1 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
+              <div className={`h-full rounded-full ${m.bar} ${m.barW}`}></div>
             </div>
           </div>
-          <p className={`text-xs mt-4 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>⚠️ Requires immediate attention</p>
-          <div className={`mt-3 h-1 rounded-full ${darkMode ? 'bg-gray-800' : 'bg-gray-200'}`}>
-            <div className="h-full w-1/3 rounded-full bg-amber-500"></div>
-          </div>
-        </div>
-
-        <div className={`p-6 rounded-lg transition-all duration-300 hover:shadow-lg hover:scale-105 cursor-pointer transform ${
-          darkMode ? 'bg-gray-900 border border-gray-800 hover:border-green-600' : 'bg-white border border-gray-200 shadow hover:shadow-xl'
-        }`}>
-          <div className="flex items-start justify-between">
-            <div>
-              <p className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>APPROVED TODAY</p>
-              <div className="flex items-baseline space-x-2 mt-3">
-                <p className={`text-4xl font-bold ${darkMode ? 'text-green-400' : 'text-green-600'}`}>{metrics.approvedToday}</p>
-                <span className="text-sm text-green-600 font-semibold">Clean</span>
-              </div>
-            </div>
-            <div className={`p-3 rounded-lg ${darkMode ? 'bg-green-500/20' : 'bg-green-100'}`}>
-              <FiCheckCircle className={`w-7 h-7 ${darkMode ? 'text-green-400' : 'text-green-600'}`} />
-            </div>
-          </div>
-          <p className={`text-xs mt-4 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>✓ Low risk transactions</p>
-          <div className={`mt-3 h-1 rounded-full ${darkMode ? 'bg-gray-800' : 'bg-gray-200'}`}>
-            <div className="h-full w-2/3 rounded-full bg-green-500"></div>
-          </div>
-        </div>
-
-        <div className={`p-6 rounded-lg transition-all duration-300 hover:shadow-lg hover:scale-105 cursor-pointer transform ${
-          darkMode ? 'bg-gray-900 border border-gray-800 hover:border-blue-600' : 'bg-white border border-gray-200 shadow hover:shadow-xl'
-        }`}>
-          <div className="flex items-start justify-between">
-            <div>
-              <p className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>AVG PROCESSING</p>
-              <div className="flex items-baseline space-x-2 mt-3">
-                <p className={`text-4xl font-bold ${darkMode ? 'text-white' : 'text-black'}`}>{metrics.avgProcessingTime}</p>
-              </div>
-            </div>
-            <div className={`p-3 rounded-lg ${darkMode ? 'bg-blue-500/20' : 'bg-blue-100'}`}>
-              <MdTrendingUp className={`w-7 h-7 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
-            </div>
-          </div>
-          <p className={`text-xs mt-4 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>⚡ Per transaction</p>
-          <div className={`mt-3 h-1 rounded-full ${darkMode ? 'bg-gray-800' : 'bg-gray-200'}`}>
-            <div className="h-full w-3/4 rounded-full bg-blue-500"></div>
-          </div>
-        </div>
+        ))}
       </div>
 
-      {/* System Status & Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-        <div className={`p-4 rounded-lg flex items-center space-x-3 transition-all duration-300 ${
-          darkMode ? 'bg-gray-900 border border-gray-800 hover:border-purple-600' : 'bg-blue-50 border border-blue-200 hover:border-blue-400'
-        }`}>
-          <div className={`p-2 rounded-lg ${darkMode ? 'bg-purple-500/20' : 'bg-purple-100'}`}>
-            <HiSparkles className={`w-5 h-5 ${darkMode ? 'text-purple-400' : 'text-purple-600'}`} />
+      {/* System Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+        {[
+          { label: 'Active Modules', value: metrics.activeModules, icon: HiSparkles, iconBg: darkMode ? 'bg-purple-900' : 'bg-purple-100', iconColor: darkMode ? 'text-purple-400' : 'text-purple-600' },
+          { label: 'Model Accuracy', value: metrics.modelAccuracy, icon: MdAnalytics, iconBg: darkMode ? 'bg-blue-900' : 'bg-blue-100', iconColor: darkMode ? 'text-blue-400' : 'text-blue-600' },
+          { label: 'SLA Compliance', value: metrics.slaCompliance, icon: FiTarget, iconBg: darkMode ? 'bg-green-900' : 'bg-green-100', iconColor: darkMode ? 'text-green-400' : 'text-green-600' },
+          { label: 'System Status', value: 'Online', icon: FiRadio, iconBg: darkMode ? 'bg-green-900' : 'bg-green-100', iconColor: darkMode ? 'text-green-400 animate-pulse' : 'text-green-600 animate-pulse', valColor: darkMode ? 'text-green-400' : 'text-green-600' },
+        ].map((s, i) => (
+          <div key={i} className={`p-4 rounded-xl border ${card} ${cardHover} transition-all`}>
+            <div className="flex items-center space-x-3">
+              <div className={`p-2 rounded-lg ${s.iconBg}`}>
+                <s.icon className={`w-4 h-4 ${s.iconColor}`} />
+              </div>
+              <div>
+                <p className={`text-xs font-semibold ${label}`}>{s.label}</p>
+                <p className={`text-lg font-bold mt-0.5 ${s.valColor || title}`}>{s.value}</p>
+              </div>
+            </div>
           </div>
-          <div>
-            <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-600'}`}>Active Modules</p>
-            <p className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-black'}`}>{metrics.activeModules}</p>
-          </div>
-        </div>
-
-        <div className={`p-4 rounded-lg flex items-center space-x-3 transition-all duration-300 ${
-          darkMode ? 'bg-gray-900 border border-gray-800 hover:border-blue-600' : 'bg-blue-50 border border-blue-200 hover:border-blue-400'
-        }`}>
-          <div className={`p-2 rounded-lg ${darkMode ? 'bg-blue-500/20' : 'bg-blue-100'}`}>
-            <MdAnalytics className={`w-5 h-5 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
-          </div>
-          <div>
-            <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-600'}`}>Accuracy</p>
-            <p className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-black'}`}>{metrics.modelAccuracy}</p>
-          </div>
-        </div>
-
-        <div className={`p-4 rounded-lg flex items-center space-x-3 transition-all duration-300 ${
-          darkMode ? 'bg-gray-900 border border-gray-800 hover:border-green-600' : 'bg-green-50 border border-green-200 hover:border-green-400'
-        }`}>
-          <div className={`p-2 rounded-lg ${darkMode ? 'bg-green-500/20' : 'bg-green-100'}`}>
-            <FiTarget className={`w-5 h-5 ${darkMode ? 'text-green-400' : 'text-green-600'}`} />
-          </div>
-          <div>
-            <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-600'}`}>SLA Compliance</p>
-            <p className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-black'}`}>{metrics.slaCompliance}</p>
-          </div>
-        </div>
-
-        <div className={`p-4 rounded-lg flex items-center space-x-3 transition-all duration-300 ${
-          darkMode ? 'bg-gray-900 border border-gray-800 hover:border-green-600' : 'bg-green-50 border border-green-200 hover:border-green-400'
-        }`}>
-          <div className={`p-2 rounded-lg ${darkMode ? 'bg-green-500/20' : 'bg-green-100'}`}>
-            <FiRadio className={`w-5 h-5 ${darkMode ? 'text-green-400 animate-pulse' : 'text-green-600 animate-pulse'}`} />
-          </div>
-          <div>
-            <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-600'}`}>System Status</p>
-            <p className={`text-xl font-bold ${darkMode ? 'text-green-400' : 'text-green-600'}`}>Online</p>
-          </div>
-        </div>
+        ))}
       </div>
 
       {/* Recent Transactions */}
-      <div className={`p-6 rounded-lg ${darkMode ? 'bg-gray-900 border border-gray-800' : 'bg-white border border-gray-200 shadow'}`}>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className={`text-xl font-bold flex items-center space-x-2 ${darkMode ? 'text-white' : 'text-black'}`}>
-            <FiBell className="w-5 h-5 animate-bounce" />
-            <span>Recent Activity</span>
-          </h2>
-          <a href="/queue" className={`flex items-center space-x-1 text-sm font-medium transition-all hover:gap-2 ${
-            darkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-black'
+      <div className={`rounded-xl border ${card}`}>
+        <div className={`px-5 py-3 border-b ${divider} flex items-center justify-between`}>
+          <div className="flex items-center space-x-3">
+            <div className={`p-2 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
+              <FiBell className={`w-4 h-4 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`} />
+            </div>
+            <h2 className={`text-base font-bold ${title}`}>Recent Transactions</h2>
+          </div>
+          <a href="/queue" className={`flex items-center space-x-1.5 text-sm font-medium transition-colors ${
+            darkMode ? 'text-indigo-400 hover:text-indigo-300' : 'text-indigo-600 hover:text-indigo-700'
           }`}>
-            View All <FiArrowRight className="w-4 h-4" />
+            <span>View All</span>
+            <FiArrowRight className="w-4 h-4" />
           </a>
         </div>
 
-        <div className="space-y-3">
+        <div className="p-4 space-y-2">
           {recentTransactions.map((txn) => {
-            const riskColor = getRiskBadgeColor(txn.risk_score);
+            const risk = getRiskBadge(txn.risk_score);
             return (
-              <div
-                key={txn.id}
-                className={`p-5 rounded-lg border flex items-center justify-between transition-all duration-300 hover:shadow-lg hover:scale-102 cursor-pointer group ${
-                  darkMode
-                    ? 'bg-gray-800 border-gray-700 hover:border-gray-500 hover:bg-gray-700'
-                    : 'bg-gradient-to-r from-gray-50 to-white border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <div className="flex-1">
-                  <div className="flex items-center space-x-4">
-                    <div className={`p-2 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
-                      <FiActivity className={`w-4 h-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`} />
-                    </div>
-                    <div>
-                      <p className={`font-semibold group-hover:text-blue-500 transition-colors ${darkMode ? 'text-white' : 'text-black'}`}>
-                        {txn.id}
-                      </p>
-                      <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                        💰 ₹{(txn.amount / 100000).toFixed(2)}L
-                      </p>
-                    </div>
+              <div key={txn.id} className={`flex items-center justify-between p-3 rounded-lg border transition-all cursor-pointer gap-3 ${
+                darkMode ? 'border-gray-700 hover:bg-gray-700' : 'border-gray-100 hover:bg-gray-50'
+              }`}>
+                <div className="flex items-center space-x-2 flex-1 min-w-0">
+                  <div className={`p-2 rounded-lg flex-shrink-0 ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
+                    <FiDollarSign className={`w-4 h-4 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className={`font-semibold text-xs truncate ${title}`}>{txn.id}</p>
+                    <p className={`text-xs truncate ${sub}`}>{txn.sender} → {txn.receiver}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-6">
-                  <div className="text-right">
-                    <p className={`text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                      {txn.sender.split('_')[1]}
-                    </p>
-                    <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
-                      ⏰ {txn.time}
-                    </p>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="text-right hidden sm:block">
+                    <p className={`font-semibold text-xs ${title}`}>₹{(txn.amount / 100000).toFixed(2)}L</p>
+                    <p className={`text-xs ${label}`}>{txn.time}</p>
                   </div>
-
-                  <div className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${riskColor.bg} ${riskColor.text}`}>
-                    {(txn.risk_score * 100).toFixed(0)}%
+                  <div className={`px-2 py-1 rounded-lg border text-xs font-bold flex items-center space-x-1 flex-shrink-0 ${risk.bg} ${risk.text}`}>
+                    <div className={`w-1 h-1 rounded-full ${risk.dot}`}></div>
+                    <span>{(txn.risk_score * 100).toFixed(0)}%</span>
                   </div>
-
-                  <div className="p-2 rounded-lg bg-gray-700/50">
-                    {getStatusIcon(txn.status)}
-                  </div>
+                  <span className={`text-xs font-bold px-2 py-1 rounded-full flex-shrink-0 whitespace-nowrap ${getStatusBadge(txn.status)}`}>
+                    {txn.status.toUpperCase()}
+                  </span>
                 </div>
               </div>
             );
@@ -296,274 +172,104 @@ export default function Home({ darkMode }) {
         </div>
       </div>
 
-      {/* Info Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className={`p-6 rounded-lg transition-all duration-300 hover:shadow-lg ${darkMode ? 'bg-gray-900 border border-gray-800' : 'bg-white border border-gray-200 shadow'}`}>
-          <h3 className={`text-lg font-semibold mb-5 flex items-center space-x-2 ${darkMode ? 'text-white' : 'text-black'}`}>
-            <FiActivity className="w-5 h-5 text-blue-500" />
-            <span>Today's Summary</span>
-          </h3>
-          <div className="space-y-4">
-            <div className="flex justify-between">
-              <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total Processed</span>
-              <span className={`font-semibold ${darkMode ? 'text-white' : 'text-black'}`}>{metrics.totalTransactions}</span>
+      {/* Bottom Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {/* Summary */}
+        <div className={`rounded-xl border ${card}`}>
+          <div className={`px-5 py-3 border-b ${divider} flex items-center space-x-3`}>
+            <div className={`p-2 rounded-lg ${darkMode ? 'bg-blue-900' : 'bg-blue-100'}`}>
+              <FiActivity className={`w-4 h-4 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
             </div>
-            <div className="flex items-center justify-between p-3 rounded-lg hover:bg-opacity-50 transition-colors cursor-pointer">
-              <span className={`text-sm font-medium flex items-center space-x-2 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                <FiAlertCircle className="w-4 h-4 text-red-500" />
-                <span>Flagged</span>
-              </span>
-              <span className={`font-bold text-red-600 text-lg`}>{metrics.flaggedCount}</span>
-            </div>
-            <div className="flex items-center justify-between p-3 rounded-lg hover:bg-opacity-50 transition-colors cursor-pointer">
-              <span className={`text-sm font-medium flex items-center space-x-2 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                <FiCheckCircle className="w-4 h-4 text-green-500" />
-                <span>Approved Today</span>
-              </span>
-              <span className={`font-bold text-green-600 text-lg`}>{metrics.approvedToday}</span>
-            </div>
-            <div className="flex items-center justify-between p-3 rounded-lg hover:bg-opacity-50 transition-colors cursor-pointer">
-              <span className={`text-sm font-medium flex items-center space-x-2 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                <FiX className="w-4 h-4 text-orange-500" />
-                <span>Rejected Today</span>
-              </span>
-              <span className={`font-bold text-orange-600 text-lg`}>{metrics.rejectedToday}</span>
-            </div>
+            <h3 className={`font-bold text-sm ${title}`}>Summary</h3>
+          </div>
+          <div className="p-3 space-y-1">
+            {[
+              { label: 'Total Processed', value: metrics.totalTransactions, color: title },
+              { label: 'Flagged', value: metrics.flaggedCount, color: darkMode ? 'text-red-400' : 'text-red-600', icon: FiAlertCircle },
+              { label: 'Rejected Today', value: metrics.rejectedToday, color: darkMode ? 'text-orange-400' : 'text-orange-600' },
+            ].map((row, i) => (
+              <div key={i} className={`flex items-center justify-between px-3 py-2.5 rounded-lg ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'} transition-colors`}>
+                <span className={`text-sm font-medium flex items-center space-x-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  {row.icon && <row.icon className="w-3.5 h-3.5" />}
+                  <span>{row.label}</span>
+                </span>
+                <span className={`font-bold text-base ${row.color}`}>{row.value}</span>
+              </div>
+            ))}
           </div>
         </div>
 
-        <div className={`p-6 rounded-lg transition-all duration-300 hover:shadow-lg ${darkMode ? 'bg-gray-900 border border-gray-800' : 'bg-white border border-gray-200 shadow'}`}>
-          <h3 className={`text-lg font-semibold mb-5 flex items-center space-x-2 ${darkMode ? 'text-white' : 'text-black'}`}>
-            <FiArrowRight className="w-5 h-5 text-green-500" />
-            <span>Quick Actions</span>
-          </h3>
-          <div className="space-y-3">
-            <a href="/queue" className={`block p-4 rounded-lg transition-all duration-300 hover:shadow-md transform hover:scale-102 ${
-              darkMode ? 'bg-gray-800 hover:bg-gray-700 hover:border-blue-600' : 'bg-gradient-to-r from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 border border-blue-200'
+        {/* Quick Actions */}
+        <div className={`rounded-xl border ${card}`}>
+          <div className={`px-5 py-3 border-b ${divider} flex items-center space-x-3`}>
+            <div className={`p-2 rounded-lg ${darkMode ? 'bg-green-900' : 'bg-green-100'}`}>
+              <FiArrowRight className={`w-4 h-4 ${darkMode ? 'text-green-400' : 'text-green-600'}`} />
+            </div>
+            <h3 className={`font-bold text-sm ${title}`}>Quick Actions</h3>
+          </div>
+          <div className="p-3 space-y-2">
+            <a href="/queue" className={`block p-3 rounded-lg border transition-all ${
+              darkMode ? 'bg-indigo-950 border-indigo-800 hover:bg-indigo-900' : 'bg-indigo-50 border-indigo-200 hover:bg-indigo-100'
             }`}>
-              <p className={`font-semibold flex items-center space-x-2 ${darkMode ? 'text-white' : 'text-blue-900'}`}>
-                <FiActivity className="w-4 h-4" />
-                <span>Review Queue</span>
-              </p>
-              <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-blue-700'}`}>📋 {metrics.pendingReview} pending transactions</p>
+              <p className={`font-semibold text-sm ${darkMode ? 'text-indigo-300' : 'text-indigo-900'}`}>Review Queue</p>
+              <p className={`text-xs mt-0.5 ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>{metrics.pendingReview} transactions pending</p>
             </a>
-            <a href="/dashboard" className={`block p-4 rounded-lg transition-all duration-300 hover:shadow-md transform hover:scale-102 ${
-              darkMode ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gradient-to-r from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 border border-purple-200'
+            <a href="/dashboard" className={`block p-3 rounded-lg border transition-all ${
+              darkMode ? 'bg-purple-950 border-purple-800 hover:bg-purple-900' : 'bg-purple-50 border-purple-200 hover:bg-purple-100'
             }`}>
-              <p className={`font-semibold flex items-center space-x-2 ${darkMode ? 'text-white' : 'text-purple-900'}`}>
-                <MdAnalytics className="w-4 h-4" />
-                <span>View Analytics</span>
-              </p>
-              <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-purple-700'}`}>📊 Detailed trends and reports</p>
+              <p className={`font-semibold text-sm ${darkMode ? 'text-purple-300' : 'text-purple-900'}`}>View Analytics</p>
+              <p className={`text-xs mt-0.5 ${darkMode ? 'text-purple-400' : 'text-purple-600'}`}>Detailed metrics and trends</p>
             </a>
           </div>
         </div>
       </div>
 
-      {/* Why VajraShield Section */}
-      <div>
-        <h2 className={`text-2xl font-bold mb-6 ${darkMode ? 'text-white' : 'text-black'}`}>
-          WHY VAJRASHIELD?
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className={`p-5 rounded-lg ${darkMode ? 'bg-gray-900 border border-gray-800' : 'bg-blue-50 border border-blue-100'}`}>
-            <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 ${
-              darkMode ? 'bg-blue-500/20' : 'bg-blue-100'
-            }`}>
-              <FiZap className={`w-6 h-6 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
-            </div>
-            <h3 className={`font-semibold mb-2 ${darkMode ? 'text-white' : 'text-black'}`}>
-              Real-Time Processing
-            </h3>
-            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
-              ML-powered risk scoring with 94.2% accuracy in milliseconds
-            </p>
-          </div>
-
-          <div className={`p-5 rounded-lg ${darkMode ? 'bg-gray-900 border border-gray-800' : 'bg-green-50 border border-green-100'}`}>
-            <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 ${
-              darkMode ? 'bg-green-500/20' : 'bg-green-100'
-            }`}>
-              <FiShield className={`w-6 h-6 ${darkMode ? 'text-green-400' : 'text-green-600'}`} />
-            </div>
-            <h3 className={`font-semibold mb-2 ${darkMode ? 'text-white' : 'text-black'}`}>
-              Compliance Ready
-            </h3>
-            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
-              RBI, NEFT, RTGS guidelines enforced with SLA management
-            </p>
-          </div>
-
-          <div className={`p-5 rounded-lg ${darkMode ? 'bg-gray-900 border border-gray-800' : 'bg-amber-50 border border-amber-100'}`}>
-            <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 ${
-              darkMode ? 'bg-amber-500/20' : 'bg-amber-100'
-            }`}>
-              <FiAlertCircle className={`w-6 h-6 ${darkMode ? 'text-amber-400' : 'text-amber-600'}`} />
-            </div>
-            <h3 className={`font-semibold mb-2 ${darkMode ? 'text-white' : 'text-black'}`}>
-              Anomaly Detection
-            </h3>
-            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
-              Advanced pattern recognition & behavioral analysis
-            </p>
-          </div>
-
-          <div className={`p-5 rounded-lg ${darkMode ? 'bg-gray-900 border border-gray-800' : 'bg-purple-50 border border-purple-100'}`}>
-            <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 ${
-              darkMode ? 'bg-purple-500/20' : 'bg-purple-100'
-            }`}>
-              <FiTrendingUp className={`w-6 h-6 ${darkMode ? 'text-purple-400' : 'text-purple-600'}`} />
-            </div>
-            <h3 className={`font-semibold mb-2 ${darkMode ? 'text-white' : 'text-black'}`}>
-              Risk Analytics
-            </h3>
-            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
-              Comprehensive dashboards & trend analysis
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* AI Assistant Section */}
-      <div className={`p-8 rounded-lg ${
-        darkMode ? 'bg-gradient-to-br from-purple-950 to-purple-900 border border-purple-800' : 'bg-gradient-to-br from-purple-100 to-blue-100 border border-purple-200'
+      {/* JARSH Banner */}
+      <div className={`p-4 rounded-xl border ${
+        darkMode
+          ? 'bg-gradient-to-br from-purple-950 to-indigo-950 border-purple-800'
+          : 'bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-200'
       }`}>
-        <div className="flex items-start justify-between mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
           <div>
-            <div className="flex items-center space-x-2 mb-3">
-              <HiSparkles className={`w-6 h-6 ${darkMode ? 'text-purple-300' : 'text-purple-600'}`} />
-              <p className={`text-sm font-semibold uppercase tracking-wide ${darkMode ? 'text-purple-300' : 'text-purple-700'}`}>
-                AI ASSISTANT
-              </p>
+            <div className="flex items-center space-x-2 mb-2">
+              <HiSparkles className={`w-4 h-4 ${darkMode ? 'text-purple-400' : 'text-purple-600'}`} />
+              <p className={`text-xs font-bold uppercase tracking-widest ${darkMode ? 'text-purple-400' : 'text-purple-600'}`}>AI Assistant</p>
             </div>
-            <h2 className={`text-4xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-purple-900'}`}>
-              MEET <span className={darkMode ? 'text-purple-300' : 'text-purple-600'}>JARSH</span>
-            </h2>
-            <p className={`text-lg ${darkMode ? 'text-purple-200' : 'text-purple-800'}`}>
-              Jarvis Advanced Risk Security Helper — Your AI-powered transaction risk companion.
-            </p>
+            <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-purple-900'}`}>Meet JARSH</h2>
+            <p className={`text-sm mt-1 ${darkMode ? 'text-purple-300' : 'text-purple-700'}`}>Your intelligent risk management companion</p>
           </div>
-          <div className={`w-24 h-24 rounded-full flex items-center justify-center flex-shrink-0 ${
-            darkMode ? 'bg-purple-800/50' : 'bg-white/50'
-          }`}>
-            <HiSparkles className={`w-12 h-12 ${darkMode ? 'text-purple-300' : 'text-purple-600'} animate-pulse`} />
+          <div className={`w-14 h-14 rounded-full flex items-center justify-center ${darkMode ? 'bg-purple-800' : 'bg-purple-100'}`}>
+            <HiSparkles className={`w-7 h-7 ${darkMode ? 'text-purple-300' : 'text-purple-600'} animate-pulse`} />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <div>
-            <div className="space-y-4">
-              <div className="flex items-start space-x-3">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                  darkMode ? 'bg-purple-700/50' : 'bg-white/30'
-                }`}>
-                  <FiZap className={`w-4 h-4 ${darkMode ? 'text-purple-300' : 'text-purple-700'}`} />
-                </div>
-                <div>
-                  <h3 className={`font-semibold ${darkMode ? 'text-white' : 'text-purple-900'}`}>
-                    Real-Time Analysis
-                  </h3>
-                  <p className={`text-sm ${darkMode ? 'text-purple-200' : 'text-purple-800'}`}>
-                    Instant insights on transaction risk scores and fraud patterns
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-3">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                  darkMode ? 'bg-purple-700/50' : 'bg-white/30'
-                }`}>
-                  <FiShield className={`w-4 h-4 ${darkMode ? 'text-purple-300' : 'text-purple-700'}`} />
-                </div>
-                <div>
-                  <h3 className={`font-semibold ${darkMode ? 'text-white' : 'text-purple-900'}`}>
-                    Risk Guidance
-                  </h3>
-                  <p className={`text-sm ${darkMode ? 'text-purple-200' : 'text-purple-800'}`}>
-                    Recommended actions & remediation strategies for flagged transactions
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-3">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                  darkMode ? 'bg-purple-700/50' : 'bg-white/30'
-                }`}>
-                  <FiBook className={`w-4 h-4 ${darkMode ? 'text-purple-300' : 'text-purple-700'}`} />
-                </div>
-                <div>
-                  <h3 className={`font-semibold ${darkMode ? 'text-white' : 'text-purple-900'}`}>
-                    Compliance Reports
-                  </h3>
-                  <p className={`text-sm ${darkMode ? 'text-purple-200' : 'text-purple-800'}`}>
-                    Auto-generated regulatory compliance documentation & audit trails
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-3">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                  darkMode ? 'bg-purple-700/50' : 'bg-white/30'
-                }`}>
-                  <FiPhone className={`w-4 h-4 ${darkMode ? 'text-purple-300' : 'text-purple-700'}`} />
-                </div>
-                <div>
-                  <h3 className={`font-semibold ${darkMode ? 'text-white' : 'text-purple-900'}`}>
-                    24/7 Support
-                  </h3>
-                  <p className={`text-sm ${darkMode ? 'text-purple-200' : 'text-purple-800'}`}>
-                    Always available to answer risk management & compliance questions
-                  </p>
-                </div>
-              </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
+          {[
+            { icon: FiZap, label: 'Real-Time Analysis', desc: 'Instant risk scoring' },
+            { icon: FiShield, label: 'Risk Guidance', desc: 'Mitigation strategies' },
+            { icon: FiBook, label: 'Compliance Support', desc: 'Regulatory docs' },
+            { icon: FiPhone, label: '24/7 Support', desc: 'Always available' },
+          ].map((f, i) => (
+            <div key={i} className={`p-2.5 rounded-lg border ${
+              darkMode ? 'bg-purple-900/40 border-purple-800' : 'bg-white/60 border-purple-200'
+            }`}>
+              <f.icon className={`w-4 h-4 mb-2 ${darkMode ? 'text-purple-400' : 'text-purple-600'}`} />
+              <p className={`text-xs font-semibold ${darkMode ? 'text-purple-200' : 'text-purple-800'}`}>{f.label}</p>
+              <p className={`text-xs mt-0.5 ${darkMode ? 'text-purple-400' : 'text-purple-600'}`}>{f.desc}</p>
             </div>
-          </div>
-
-          <div className="space-y-4">
-            <div className={`p-4 rounded-lg ${darkMode ? 'bg-purple-800/30' : 'bg-white/30'} border ${darkMode ? 'border-purple-700/50' : 'border-white/50'}`}>
-              <h4 className={`font-semibold mb-2 ${darkMode ? 'text-purple-200' : 'text-purple-800'}`}>
-                ⚡ Quick Risk Assessment
-              </h4>
-              <p className={`text-sm ${darkMode ? 'text-purple-100' : 'text-purple-900'}`}>
-                Ask JARSH to analyze suspicious transactions and provide risk scores
-              </p>
-            </div>
-
-            <div className={`p-4 rounded-lg ${darkMode ? 'bg-purple-800/30' : 'bg-white/30'} border ${darkMode ? 'border-purple-700/50' : 'border-white/50'}`}>
-              <h4 className={`font-semibold mb-2 ${darkMode ? 'text-purple-200' : 'text-purple-800'}`}>
-                📊 Pattern Recognition
-              </h4>
-              <p className={`text-sm ${darkMode ? 'text-purple-100' : 'text-purple-900'}`}>
-                Identify anomalies & suspicious behavior patterns automatically
-              </p>
-            </div>
-
-            <div className={`p-4 rounded-lg ${darkMode ? 'bg-purple-800/30' : 'bg-white/30'} border ${darkMode ? 'border-purple-700/50' : 'border-white/50'}`}>
-              <h4 className={`font-semibold mb-2 ${darkMode ? 'text-purple-200' : 'text-purple-800'}`}>
-                ✓ Compliance Assurance
-              </h4>
-              <p className={`text-sm ${darkMode ? 'text-purple-100' : 'text-purple-900'}`}>
-                Ensure all transactions meet RBI, NEFT & RTGS compliance standards
-              </p>
-            </div>
-          </div>
+          ))}
         </div>
 
-        <div className={`flex items-center justify-between p-4 rounded-lg border ${
-          darkMode ? 'bg-purple-800/20 border-purple-700/50' : 'bg-white/20 border-white/50'
+        <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-lg border ${
+          darkMode ? 'bg-purple-900/30 border-purple-800' : 'bg-white/40 border-purple-200'
         }`}>
-          <div>
-            <p className={`text-sm ${darkMode ? 'text-purple-200' : 'text-purple-800'}`}>
-              Ready to enhance your transaction risk management?
-            </p>
-          </div>
-          <button className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-semibold transition-all ${
-            darkMode
-              ? 'bg-purple-600 hover:bg-purple-500 text-white'
-              : 'bg-purple-600 hover:bg-purple-700 text-white'
-          }`}>
+          <p className={`text-sm font-medium ${darkMode ? 'text-purple-200' : 'text-purple-800'}`}>
+            Ready to enhance your transaction review process?
+          </p>
+          <button className="flex items-center justify-center space-x-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold transition-colors whitespace-nowrap">
             <span>Start Chat</span>
-            <FiArrowRight className="w-4 h-4" />
+            <FiArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
