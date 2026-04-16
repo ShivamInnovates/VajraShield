@@ -11,6 +11,9 @@ COPY src ./src
 COPY public ./public
 COPY tailwind.config.js ./
 
+# Set environment variable for chatbot API
+ENV REACT_APP_CHATBOT_API_URL=http://localhost:8002
+
 RUN npm run build
 
 # Production stage

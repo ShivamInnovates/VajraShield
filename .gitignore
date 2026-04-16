@@ -1,8 +1,10 @@
-# Environment variables
+# Environment variables (all .env files except .env.example)
 .env
+.env.*
+!.env.example
+*.env
 .env.local
 .env.*.local
-.env.example.local
 
 # Python
 __pycache__/
@@ -101,3 +103,9 @@ instance/
 
 # Generated files
 *.generated.*
+
+# Large ML data files - exclude all CSV files in ml/ directory
+ml/*.csv
+ml/*.pkl
+chakravyuh_transactions.csv
+PS_20174392719_1491204439457_log.csv

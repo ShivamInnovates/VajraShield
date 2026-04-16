@@ -1,40 +1,97 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { HiSparkles } from 'react-icons/hi';
-import { FiX, FiSend, FiMinimize2 } from 'react-icons/fi';
+import { FiX, FiSend, FiMinimize2, FiAlertCircle } from 'react-icons/fi';
+import { useLocation } from 'react-router-dom';
+import chatService from '../services/chatService';
 
 export default function FloatingChat({ darkMode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     {
       id: 1,
-      text: "Hello! I'm JARSH, your AI Risk Assistant. How can I help you today?",
+      text: "Hello! I'm VajraShield AI Analyst. I can help you understand transaction decisions, investigate fraud patterns, and monitor system performance. What would you like to know?",
       sender: 'bot',
       timestamp: new Date(),
     },
   ]);
   const [inputValue, setInputValue] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [apiStatus, setApiStatus] = useState('unknown');
   const messagesEndRef = useRef(null);
+  const location = useLocation();
+
+  // Check API health on mount
+  useEffect(() => {
+    checkApiHealth();
+  }, []);
 
   useEffect(() => {
     if (isOpen) messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isOpen]);
 
-  const handleSend = () => {
-    if (!inputValue.trim()) return;
-    const userMsg = { id: messages.length + 1, text: inputValue, sender: 'user', timestamp: new Date() };
+  // Extract transaction ID from URL if on transaction detail page
+  const getCurrentTxnId = () => {
+    const match = location.pathname.match(/\/transaction\/([^/]+)/);
+    return match ? match[1] : null;
+  };
+
+  const checkApiHealth = async () => {
+    const health = await chatService.checkHealth();
+    setApiStatus(health.status === 'healthy' ? 'connected' : 'disconnected');
+  };
+
+  const handleSend = async () => {
+    if (!inputValue.trim() || isLoading) return;
+    
+    const userMsg = { 
+      id: messages.length + 1, 
+      text: inputValue, 
+      sender: 'user', 
+      timestamp: new Date() 
+    };
+    
     setMessages((prev) => [...prev, userMsg]);
     setInputValue('');
-    setTimeout(() => {
+    setIsLoading(true);
+
+    try {
+      // Get transaction context if on transaction page
+      const txnId = getCurrentTxnId();
+      
+      // Send to chatbot API
+      const result = await chatService.sendMessage(inputValue, txnId);
+      
+      // Add bot response
+      const botMsg = {
+        id: messages.length + 2,
+        text: result.response,
+        sender: 'bot',
+        timestamp: new Date(),
+        context: result.context,
+      };
+      
+      setMessages((prev) => [...prev, botMsg]);
+      
+      // Update API status
+      if (!result.error) {
+        setApiStatus('connected');
+      }
+    } catch (error) {
+      console.error('Chat error:', error);
       setMessages((prev) => [
         ...prev,
         {
           id: prev.length + 1,
-          text: "I'm analyzing your request. This feature will soon provide AI-powered risk insights!",
+          text: "I'm having trouble connecting to the backend. Please make sure the chatbot API is running on port 8001.",
           sender: 'bot',
           timestamp: new Date(),
+          error: true,
         },
       ]);
-    }, 800);
+      setApiStatus('disconnected');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const windowBg = darkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200';
@@ -72,10 +129,14 @@ export default function FloatingChat({ darkMode }) {
                 <HiSparkles className="w-4 h-4 text-white" />
               </div>
               <div>
-                <h3 className={`font-bold text-sm ${darkMode ? 'text-white' : 'text-gray-900'}`}>JARSH</h3>
-                <p className="text-xs text-green-500 flex items-center space-x-1">
-                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full inline-block"></span>
-                  <span>Online</span>
+                <h3 className={`font-bold text-sm ${darkMode ? 'text-white' : 'text-gray-900'}`}>VajraShield AI</h3>
+                <p className={`text-xs flex items-center space-x-1 ${
+                  apiStatus === 'connected' ? 'text-green-500' : 'text-red-500'
+                }`}>
+                  <span className={`w-1.5 h-1.5 rounded-full inline-block ${
+                    apiStatus === 'connected' ? 'bg-green-500' : 'bg-red-500'
+                  }`}></span>
+                  <span>{apiStatus === 'connected' ? 'Connected' : 'Disconnected'}</span>
                 </p>
               </div>
             </div>
@@ -92,13 +153,21 @@ export default function FloatingChat({ darkMode }) {
             {messages.map((msg) => (
               <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[75%] px-3.5 py-2.5 rounded-2xl text-sm ${
-                  msg.sender === 'user'
+                  msg.error
+                    ? 'bg-red-900/20 border border-red-500/30 text-red-400'
+                    : msg.sender === 'user'
                     ? darkMode ? 'bg-emerald-600 text-white rounded-br-sm' : 'bg-black text-white rounded-br-sm'
                     : darkMode
                       ? 'bg-zinc-900 text-gray-200 rounded-bl-sm'
                       : 'bg-gray-100 text-gray-800 rounded-bl-sm'
                 }`}>
-                  <p className="leading-relaxed">{msg.text}</p>
+                  {msg.error && (
+                    <div className="flex items-center space-x-2 mb-2">
+                      <FiAlertCircle className="w-4 h-4" />
+                      <span className="text-xs font-semibold">Connection Error</span>
+                    </div>
+                  )}
+                  <p className="leading-relaxed whitespace-pre-wrap">{msg.text}</p>
                   <p className={`text-xs mt-1 ${
                     msg.sender === 'user' ? 'text-gray-200' : darkMode ? 'text-gray-500' : 'text-gray-400'
                   }`}>
@@ -107,6 +176,22 @@ export default function FloatingChat({ darkMode }) {
                 </div>
               </div>
             ))}
+            {isLoading && (
+              <div className="flex justify-start">
+                <div className={`px-3.5 py-2.5 rounded-2xl text-sm ${
+                  darkMode ? 'bg-zinc-900 text-gray-200' : 'bg-gray-100 text-gray-800'
+                }`}>
+                  <div className="flex items-center space-x-2">
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                    </div>
+                    <span className="text-xs">Analyzing...</span>
+                  </div>
+                </div>
+              </div>
+            )}
             <div ref={messagesEndRef} />
           </div>
 
@@ -123,7 +208,7 @@ export default function FloatingChat({ darkMode }) {
               />
               <button
                 onClick={handleSend}
-                disabled={!inputValue.trim()}
+                disabled={!inputValue.trim() || isLoading}
                 className={`p-2 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl transition-colors ${
                   darkMode ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-black hover:bg-gray-900'
                 }`}
