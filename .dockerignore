@@ -1,0 +1,25 @@
+# Build Context Exclusions
+**/.git
+**/.gitignore
+**/node_modules
+**/venv
+**/__pycache__
+**/.pytest_cache
+**/.idea
+**/.vscode
+**/.DS_Store
+**/build
+**/dist
+
+# Docker-specific
+**/docker-data
+**/postgres_data
+**/neo4j_data
+
+# Local environment
+.env
+*.log
+*.pyc
+*.pyo
+*.pyd
+.db

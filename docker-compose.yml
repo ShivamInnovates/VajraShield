@@ -1,0 +1,186 @@
+services:
+  # API Gateway
+  api-gateway:
+    build:
+      context: .
+      dockerfile: api_gateway/Dockerfile
+    ports:
+      - "8001:8000"
+    environment:
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - REDIS_HOST=redis
+      - KAFKA_BROKERS=kafka:29092
+      - PREDICTION_SERVICE_URL=http://prediction-service:8000
+    depends_on:
+      - redis
+      - kafka
+      - prediction-service
+    networks:
+      - vajrashield
+
+  # Prediction Service (Decision Engine)
+  prediction-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.prediction
+    environment:
+      - REDIS_HOST=redis
+      - KAFKA_BROKERS=kafka:29092
+      - NEO4J_URI=bolt://neo4j:7687
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+    depends_on:
+      - redis
+      - kafka
+      - neo4j
+    networks:
+      - vajrashield
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend/dashboard
+      dockerfile: Dockerfile
+      args:
+        - REACT_APP_CHATBOT_API_URL=http://chatbot:8001
+    ports:
+      - "3002:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8001
+      - REACT_APP_CHATBOT_API_URL=http://localhost:8002
+    depends_on:
+      - api-gateway
+      - chatbot
+    networks:
+      - vajrashield
+
+  # Chatbot API
+  chatbot:
+    image: python:3.10-slim
+    working_dir: /app
+    command: sh -c "pip install --no-cache-dir -r requirements.txt && python chatbot_api.py"
+    ports:
+      - "8002:8001"
+    environment:
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-phi3:mini}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_KEY}
+      - JWT_SECRET=${JWT_SECRET_KEY}
+      - API_HOST=0.0.0.0
+      - API_PORT=8001
+    volumes:
+      - ./chatbot:/app
+    networks:
+      - vajrashield
+
+  # PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=vajrashield
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/migrations:/docker-entrypoint-initdb.d
+    networks:
+      - vajrashield
+
+  # Neo4j
+  neo4j:
+    image: neo4j:5-community
+    ports:
+      - "7687:7687"
+      - "7474:7474"
+    environment:
+      - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD}
+      - NEO4J_ACCEPT_LICENSE_AGREEMENT=yes
+    volumes:
+      - neo4j_data:/var/lib/neo4j/data
+    networks:
+      - vajrashield
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - vajrashield
+
+  # Kafka
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_INTER_BROKER_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+    depends_on:
+      - zookeeper
+    networks:
+      - vajrashield
+
+  # Zookeeper
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.0
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    networks:
+      - vajrashield
+
+  # Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./observability/prometheus/alerts.yml:/etc/prometheus/rules/alerts.yml
+      - prometheus_data:/prometheus
+    networks:
+      - vajrashield
+
+  # Grafana
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - prometheus
+    networks:
+      - vajrashield
+
+  # Jaeger
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "6831:6831/udp"
+      - "16686:16686"
+    networks:
+      - vajrashield
+
+volumes:
+  postgres_data:
+  neo4j_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  vajrashield:
+    driver: bridge

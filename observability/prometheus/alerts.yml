@@ -1,0 +1,132 @@
+groups:
+  - name: VajraShield Alerts
+    interval: 30s
+    rules:
+      # API Gateway Alerts
+      - alert: APIGatewayHighLatency
+        expr: histogram_quantile(0.95, api_request_duration_seconds) > 1.0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "API Gateway high latency detected ({{ $value }}s)"
+          description: "95th percentile latency is above 1 second"
+
+      - alert: APIGatewayHighErrorRate
+        expr: rate(api_requests_total{status=~"5.."}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "API Gateway error rate > 5%"
+          description: "{{ $value | humanizePercentage }} of requests are failing"
+
+      - alert: RateLimitExceeded
+        expr: increase(rate_limit_exceeded_total[5m]) > 100
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Rate limits exceeded for {{ $labels.ip }}"
+
+      # Transaction Processing Alerts
+      - alert: TransactionQueueBacklog
+        expr: transaction_queue_size > 10000
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Transaction queue backlog: {{ $value }} transactions"
+
+      - alert: FlaggedTransactionSLABreach
+        expr: count(flagged_transaction_age_seconds > 1800) > 5
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $value }} transactions exceeding 30min SLA"
+
+      # Database Alerts
+      - alert: PostgreSQLConnectionPoolLow
+        expr: postgres_stat_activity_count < 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "PostgreSQL connection pool critically low"
+
+      - alert: Neo4jQueryTimeout
+        expr: increase(neo4j_query_timeout_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Neo4j query timeouts detected"
+
+      # Cache Alerts
+      - alert: RedisHighMemoryUsage
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis memory usage above 90%"
+
+      - alert: RedisCacheMissRate
+        expr: rate(redis_keyspace_misses_total[5m]) / rate(redis_keyspace_hits_total[5m]) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis cache miss rate > 50%"
+
+      # Model Accuracy Alerts
+      - alert: DetectionEngineAccuracyDrop
+        expr: detection_model_accuracy < 0.92
+        for: 30m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Detection model accuracy dropped below 92%"
+
+      - alert: DecisionEngineAccuracyDrop
+        expr: decision_model_accuracy < 0.90
+        for: 30m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Decision model accuracy dropped below 90%"
+
+      # Kafka Alerts
+      - alert: KafkaConsumerLag
+        expr: kafka_consumer_lag > 10000
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Kafka consumer lag: {{ $value }} messages"
+
+      - alert: KafkaBrokerDown
+        expr: kafka_brokers_online < 2
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Less than 2 Kafka brokers online"
+
+      # Infrastructure Alerts
+      - alert: HighDiskUsage
+        expr: disk_used_bytes / disk_total_bytes > 0.85
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Disk usage above 85%"
+
+      - alert: HighCPUUsage
+        expr: rate(cpu_time_seconds_total[5m]) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "CPU usage above 80%"

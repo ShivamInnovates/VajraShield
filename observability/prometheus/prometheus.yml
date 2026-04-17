@@ -1,0 +1,65 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'VajraShield'
+    environment: 'production'
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - 'localhost:9093'
+
+rule_files:
+  - '/etc/prometheus/rules/*.yml'
+
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # API Gateway
+  - job_name: 'api-gateway'
+    static_configs:
+      - targets: ['localhost:8000']
+    metrics_path: '/metrics'
+
+  # Transaction Service
+  - job_name: 'transaction-service'
+    static_configs:
+      - targets: ['localhost:8001', 'localhost:8002', 'localhost:8003']
+    metrics_path: '/metrics'
+
+  # Decision Engine
+  - job_name: 'decision-engine'
+    static_configs:
+      - targets: ['localhost:8010']
+    metrics_path: '/metrics'
+
+  # Detection Engine
+  - job_name: 'detection-engine'
+    static_configs:
+      - targets: ['localhost:8020']
+    metrics_path: '/metrics'
+
+  # Kafka
+  - job_name: 'kafka'
+    static_configs:
+      - targets: ['localhost:9308']
+
+  # PostgreSQL
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['localhost:9187']
+
+  # Redis
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['localhost:9121']
+
+  # Neo4j
+  - job_name: 'neo4j'
+    static_configs:
+      - targets: ['localhost:9133']
